@@ -1,6 +1,5 @@
 """
-Sphinx extension to create a combined sources file (llms-full.rst)
-that combines all documentation sources in the correct build order.
+Sphinx extension to create a combined sources file (llms-full.txt)
 """
 
 from pathlib import Path
