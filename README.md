@@ -28,9 +28,15 @@ extensions = [
 
 ### `llms_txt_verbose`
 
-- **Type**: boolean  
+- **Type**: boolean
 - **Default**: `False`
 - **Description**: Whether to include a summary in the build output
+
+### `llms_txt_max_lines`
+
+- **Type**: integer or `None`
+- **Default**: `None` (no limit)
+- **Description**: Sets a maximum line count for `llms_txt_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
 
 ## License
 
