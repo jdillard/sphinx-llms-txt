@@ -106,7 +106,10 @@ def test_process_includes(tmp_path):
     processed_content = manager._process_includes(source_content, source_file)
 
     # Check that the include directive was replaced with the content
-    expected_content = "Line before include.\nThis is included content.\nWith multiple lines.\nLine after include."
+    expected_content = (
+        "Line before include.\nThis is included content.\nWith multiple"
+        " lines.\nLine after include."
+    )
     assert processed_content == expected_content
 
 
@@ -167,5 +170,8 @@ def test_process_includes_with_relative_paths(tmp_path):
     processed_content = manager._process_includes(source_content, sources_file)
 
     # Check that the include directive was replaced with the content
-    expected_content = "Line before include.\nThis is included content from another directory.\nLine after include."
+    expected_content = (
+        "Line before include.\nThis is included content from another"
+        " directory.\nLine after include."
+    )
     assert processed_content == expected_content

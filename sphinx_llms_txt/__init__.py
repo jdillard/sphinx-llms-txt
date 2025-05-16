@@ -244,7 +244,8 @@ class LLMSFullManager:
     def _read_source_file(self, file_path: Path, docname: str) -> tuple:
         """Read and format a single source file.
 
-        Handles include directives by replacing them with the content of the included file.
+        Handles include directives by replacing them with the content of the included
+        file.
 
         Returns:
             tuple: (content_str, line_count) where line_count is the number of lines
@@ -300,7 +301,8 @@ class LLMSFullManager:
                 # Relative to the source file (in _sources directory)
                 possible_paths.append((source_path.parent / include_path).resolve())
 
-                # If we're in _sources directory, try relative to the original source directory
+                # If we're in _sources directory, try relative to the original source
+                # directory
                 if "_sources" in str(source_path):
                     # Extract the relative path portion from the source path
                     rel_path = None
@@ -322,7 +324,8 @@ class LLMSFullManager:
                             (Path(self.srcdir) / include_path).resolve()
                         )
 
-                        # If we have a relative path, try in the corresponding source subdirectory
+                        # If we have a relative path, try in the corresponding source
+                        # subdirectory
                         if rel_path:
                             rel_dir = os.path.dirname(rel_path)
                             if rel_dir:
@@ -341,7 +344,8 @@ class LLMSFullManager:
                         return included_content
                 except Exception as e:
                     logger.error(
-                        f"sphinx-llms-txt: Error reading include file {path_to_try}: {e}"
+                        f"sphinx-llms-txt: Error reading include file {path_to_try}:"
+                        f" {e}"
                     )
                     continue
 
