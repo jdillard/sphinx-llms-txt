@@ -74,7 +74,9 @@ class LLMSFullManager:
                     if toctree:
                         from docutils import nodes
 
-                        for node in toctree.traverse(nodes.reference):
+                        # Use findall() instead of traverse() to avoid deprecation warning
+                        # Convert generator to list for iteration
+                        for node in list(toctree.findall(nodes.reference)):
                             if "refuri" in node.attributes:
                                 refuri = node.attributes["refuri"]
                                 if refuri and refuri.endswith(".html"):
@@ -239,9 +241,10 @@ def doctree_resolved(app: Sphinx, doctree, docname: str):
     from docutils import nodes
 
     title = None
-    for node in doctree.traverse(nodes.title):
-        title = node.astext()
-        break
+    # findall() returns a generator, convert to list to check if it has elements
+    title_nodes = list(doctree.findall(nodes.title))
+    if title_nodes:
+        title = title_nodes[0].astext()
 
     if title:
         _manager.update_page_title(docname, title)
