@@ -184,7 +184,7 @@ class LLMSFullManager:
             else:
                 logger.warning(f"sphinx-llm-txt: Source file not found for: {docname}")
 
-        # Add any remaining files (in alphabetical order) if not aborted due to max lines
+        # Add any remaining files (in alphabetical order) if not aborted
         if not abort_due_to_max_lines:
             remaining_files = sorted(
                 [name for name in txt_files if name not in added_files]
@@ -205,9 +205,12 @@ class LLMSFullManager:
 
         # Check if line limit was exceeded before creating the file
         max_lines = self.config.get("llms_txt_max_lines")
-        if abort_due_to_max_lines or (max_lines is not None and total_line_count > max_lines):
+        if abort_due_to_max_lines or (
+            max_lines is not None and total_line_count > max_lines
+        ):
             logger.warning(
-                f"sphinx-llm-txt: Max line limit ({max_lines}) exceeded: {total_line_count} > {max_lines}. "
+                f"sphinx-llm-txt: Max line limit ({max_lines}) exceeded:"
+                f" {total_line_count} > {max_lines}. "
                 f"Not creating llms-full.txt file."
             )
 
@@ -223,7 +226,8 @@ class LLMSFullManager:
                 f.write("\n".join(content_parts))
 
             logger.info(
-                f"sphinx-llms-txt: created {output_path} with {len(txt_files)} sources and {total_line_count} lines"
+                f"sphinx-llms-txt: created {output_path} with {len(txt_files)}"
+                f" sources and {total_line_count} lines"
             )
 
             # Log summary information if requested
@@ -237,14 +241,15 @@ class LLMSFullManager:
         """Read and format a single source file.
 
         Returns:
-            tuple: (content_str, line_count) where line_count is the number of lines in the file
+            tuple: (content_str, line_count) where line_count is the number of lines
+                   in the file
         """
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Count the lines in the content
-            line_count = content.count('\n') + (0 if content.endswith('\n') else 1)
+            line_count = content.count("\n") + (0 if content.endswith("\n") else 1)
 
             section_lines = [content, ""]
             content_str = "\n".join(section_lines)

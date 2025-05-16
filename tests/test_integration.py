@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+
 from sphinx.testing.util import _clean_up_global_state
 
 
@@ -95,7 +96,9 @@ def test_max_lines_limit(temp_dir, rootdir):
 
     # Check that the output file was NOT created (since it would exceed the limit)
     output_file = Path(app.outdir) / "limited.txt"
-    assert not output_file.exists(), f"Output file {output_file} exists but should not when limit is exceeded"
+    assert (
+        not output_file.exists()
+    ), f"Output file {output_file} exists but should not when limit is exceeded"
 
     # Custom cleanup to avoid missing_ok issue
     sys.path[:] = app._saved_path
