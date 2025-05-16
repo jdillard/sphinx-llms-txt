@@ -39,6 +39,7 @@ def basic_sphinx_app(temp_dir, rootdir):
 
     # Custom cleanup to avoid missing_ok issue
     import sys
+
     from sphinx.testing.util import _clean_up_global_state
 
     sys.path[:] = app._saved_path
