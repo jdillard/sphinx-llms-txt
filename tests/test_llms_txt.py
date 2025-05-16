@@ -81,3 +81,97 @@ def test_empty_page_order():
     # Set only master_doc, but not env
     manager.set_master_doc("index")
     assert manager.get_page_order() == []
+
+
+def test_process_includes(tmp_path):
+    """Test that include directives are processed correctly."""
+    # Create a manager
+    manager = LLMSFullManager()
+
+    # Create a test file with an include directive
+    include_content = "This is included content.\nWith multiple lines."
+    include_file = tmp_path / "included.txt"
+    with open(include_file, "w", encoding="utf-8") as f:
+        f.write(include_content)
+
+    # Create a source file that includes the test file
+    source_content = (
+        "Line before include.\n.. include:: included.txt\nLine after include."
+    )
+    source_file = tmp_path / "source.txt"
+    with open(source_file, "w", encoding="utf-8") as f:
+        f.write(source_content)
+
+    # Process the include directive
+    processed_content = manager._process_includes(source_content, source_file)
+
+    # Check that the include directive was replaced with the content
+    expected_content = (
+        "Line before include.\nThis is included content.\nWith multiple"
+        " lines.\nLine after include."
+    )
+    assert processed_content == expected_content
+
+
+def test_process_includes_with_relative_paths(tmp_path):
+    """Test that include directives with relative paths are processed correctly."""
+    # Create a manager
+    manager = LLMSFullManager()
+
+    # Set up a more complex directory structure
+    docs_dir = tmp_path / "docs"
+    docs_dir.mkdir()
+
+    # Create the original source directory structure
+    source_dir = docs_dir / "source"
+    source_dir.mkdir()
+
+    # Create a subdirectory
+    subdir = source_dir / "subdir"
+    subdir.mkdir()
+
+    # Create an includes directory
+    includes_dir = source_dir / "includes"
+    includes_dir.mkdir()
+
+    # Set the srcdir on the manager
+    manager.srcdir = str(source_dir)
+
+    # Create the included file in the includes directory
+    include_content = "This is included content from another directory."
+    include_file = includes_dir / "common.txt"
+    with open(include_file, "w", encoding="utf-8") as f:
+        f.write(include_content)
+
+    # Create a source file in the subdirectory that includes the file from includes
+    source_content = (
+        "Line before include.\n.. include:: ../includes/common.txt\nLine after include."
+    )
+    source_file = subdir / "page.txt"
+    with open(source_file, "w", encoding="utf-8") as f:
+        f.write(source_content)
+
+    # Create the _sources directory to mimic Sphinx build output
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+    sources_dir = build_dir / "_sources"
+    sources_dir.mkdir()
+
+    # Create the same structure in the _sources directory
+    sources_subdir = sources_dir / "subdir"
+    sources_subdir.mkdir()
+
+    # Copy the source file to the _sources directory
+    sources_file = sources_subdir / "page.txt"
+    with open(sources_file, "w", encoding="utf-8") as f:
+        f.write(source_content)
+
+    # Process the include directive from the _sources file
+    processed_content = manager._process_includes(source_content, sources_file)
+
+    # Check that the include directive was replaced with the content
+    expected_content = (
+        "Line before include.\nThis is included content from another"
+        " directory.\nLine after include."
+    )
+    assert processed_content == expected_content

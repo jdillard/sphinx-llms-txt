@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Add `llms_txt_max_lines` configuration option to limit `llms-full.txt` file size
+- Automatically add content from `.. include::` directives
 
 0.1.0
 -----

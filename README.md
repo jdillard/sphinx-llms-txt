@@ -38,6 +38,11 @@ extensions = [
 - **Default**: `None` (no limit)
 - **Description**: Sets a maximum line count for `llms_txt_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
 
+## Features
+
+- Automatically add content from `.. include::` directives
+
+
 ## License
 
 MIT License - see LICENSE file for details.

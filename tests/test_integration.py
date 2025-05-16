@@ -25,6 +25,14 @@ def test_build_html_with_llms_txt(basic_sphinx_app):
     assert "Content for section 1" in content
     assert "Content for section A" in content
 
+    # Check that the include directive has been processed
+    assert "Page With Include" in content
+    assert "This is a test page that includes another file:" in content
+    assert "Changelog" in content  # Content from the included file
+    assert "0.2.0 (2025-01-01)" in content  # Content from the included file
+    assert "0.1.0 (2024-01-01)" in content  # Additional content from the included file
+    assert "This content comes after the include." in content
+
 
 def test_custom_filename(temp_dir, rootdir):
     """Test using a custom filename for the output."""
