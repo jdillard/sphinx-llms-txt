@@ -305,7 +305,7 @@ class LLMSFullManager:
         """
         # Get the configured path directives to process
         default_path_directives = ["image", "figure"]
-        custom_path_directives = self.config.get("llms_txt_path_directives", [])
+        custom_path_directives = self.config.get("llms_txt_directives")
         path_directives = set(default_path_directives + custom_path_directives)
 
         # Build the regex pattern to match all configured directives
@@ -505,7 +505,7 @@ def build_finished(app: Sphinx, exception):
             "llms_txt_filename": app.config.llms_txt_filename,
             "llms_txt_verbose": app.config.llms_txt_verbose,
             "llms_txt_max_lines": app.config.llms_txt_max_lines,
-            "llms_txt_path_directives": app.config.llms_txt_path_directives,
+            "llms_txt_directives": app.config.llms_txt_directives,
             "html_baseurl": getattr(app.config, "html_baseurl", ""),
         }
         _manager.set_config(config)
@@ -528,7 +528,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_filename", "llms-full.txt", "env")
     app.add_config_value("llms_txt_verbose", False, "env")
     app.add_config_value("llms_txt_max_lines", None, "env")
-    app.add_config_value("llms_txt_path_directives", [], "env")
+    app.add_config_value("llms_txt_directives", [], "env")
 
     # Connect to Sphinx events
     app.connect("doctree-resolved", doctree_resolved)

@@ -38,7 +38,7 @@ extensions = [
 - **Default**: `None` (no limit)
 - **Description**: Sets a maximum line count for `llms_txt_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
 
-### `llms_txt_path_directives`
+### `llms_txt_directives`
 
 - **Type**: list of strings
 - **Default**: `[]` (empty list)
@@ -46,11 +46,10 @@ extensions = [
 
 ## Features
 
-- Automatically add content from `.. include::` directives
+- Automatically add content from `include` directives
 - Resolves relative paths in directives like `.. image::` and `.. figure::` to use full paths
-  - Ability to add list of custom directives with `llms_txt_path_directives`
-  - Optionally prepend a base URL to relative paths in directives using Sphinx's `html_baseurl`
-
+  - Ability to add list of custom directives with `llms_txt_directives`
+  - Optionally, prepend a base URL using Sphinx's `html_baseurl`
 
 ## License
 
