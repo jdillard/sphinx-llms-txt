@@ -100,6 +100,10 @@ class LLMSFullManager:
 
     def combine_sources(self, outdir: str, srcdir: str):
         """Combine all source files into a single file."""
+        # Store the source directory for resolving include directives
+        self.srcdir = srcdir
+        self.outdir = outdir
+
         # Get the correct page order
         page_order = self.get_page_order()
 
@@ -240,6 +244,8 @@ class LLMSFullManager:
     def _read_source_file(self, file_path: Path, docname: str) -> tuple:
         """Read and format a single source file.
 
+        Handles include directives by replacing them with the content of the included file.
+
         Returns:
             tuple: (content_str, line_count) where line_count is the number of lines
                    in the file
@@ -247,6 +253,9 @@ class LLMSFullManager:
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
+
+            # Process include directives
+            content = self._process_includes(content, file_path)
 
             # Count the lines in the content
             line_count = content.count("\n") + (0 if content.endswith("\n") else 1)
@@ -260,6 +269,91 @@ class LLMSFullManager:
         except Exception as e:
             logger.error(f"sphinx-llm-txt: Error reading source file {file_path}: {e}")
             return "", 0
+
+    def _process_includes(self, content: str, source_path: Path) -> str:
+        """Process include directives in content.
+
+        Args:
+            content: The source content to process
+            source_path: Path to the source file (to resolve relative paths)
+
+        Returns:
+            Processed content with include directives replaced with included content
+        """
+        import os
+        import re
+
+        # Find all include directives using regex
+        include_pattern = re.compile(r"^\.\.\s+include::\s+([^\s]+)\s*$", re.MULTILINE)
+
+        # Function to replace each include with content
+        def replace_include(match):
+            include_path = match.group(1)
+
+            # Try multiple possible paths for the include file
+            possible_paths = []
+
+            # If it's an absolute path, use it directly
+            if os.path.isabs(include_path):
+                possible_paths.append(Path(include_path))
+            else:
+                # Relative to the source file (in _sources directory)
+                possible_paths.append((source_path.parent / include_path).resolve())
+
+                # If we're in _sources directory, try relative to the original source directory
+                if "_sources" in str(source_path):
+                    # Extract the relative path portion from the source path
+                    rel_path = None
+                    try:
+                        # Get the part after _sources/
+                        path_parts = str(source_path).split("_sources/")
+                        if len(path_parts) > 1:
+                            rel_path = path_parts[1]
+                            # Remove .txt extension if present
+                            if rel_path.endswith(".txt"):
+                                rel_path = rel_path[:-4]
+                    except Exception:
+                        pass
+
+                    # If we have the original source directory from Sphinx
+                    if hasattr(self, "srcdir") and self.srcdir:
+                        # Try in the srcdir root
+                        possible_paths.append(
+                            (Path(self.srcdir) / include_path).resolve()
+                        )
+
+                        # If we have a relative path, try in the corresponding source subdirectory
+                        if rel_path:
+                            rel_dir = os.path.dirname(rel_path)
+                            if rel_dir:
+                                possible_paths.append(
+                                    (
+                                        Path(self.srcdir) / rel_dir / include_path
+                                    ).resolve()
+                                )
+
+            # Try each possible path
+            for path_to_try in possible_paths:
+                try:
+                    if path_to_try.exists():
+                        with open(path_to_try, "r", encoding="utf-8") as f:
+                            included_content = f.read()
+                        return included_content
+                except Exception as e:
+                    logger.error(
+                        f"sphinx-llms-txt: Error reading include file {path_to_try}: {e}"
+                    )
+                    continue
+
+            # If we get here, we couldn't find the file
+            paths_tried = ", ".join(str(p) for p in possible_paths)
+            logger.warning(f"sphinx-llms-txt: Include file not found: {include_path}")
+            logger.debug(f"sphinx-llms-txt: Tried paths: {paths_tried}")
+            return f"[Include file not found: {include_path}]"
+
+        # Replace all includes with their content
+        processed_content = include_pattern.sub(replace_include, content)
+        return processed_content
 
     def _log_summary_info(self, page_order: List[str], total_line_count: int = 0):
         """Log summary information to the logger."""

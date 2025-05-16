@@ -7,6 +7,7 @@ Welcome to Test Project's documentation!
 
    page1
    page2
+   page_with_include
 
 Indices and tables
 ==================
