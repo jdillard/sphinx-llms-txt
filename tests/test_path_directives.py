@@ -12,7 +12,7 @@ def test_process_path_directives(tmp_path):
     manager.set_config(
         {
             "llms_txt_directives": [],
-            "llms_txt_base_url": "",
+            "html_baseurl": "",
         }
     )
 
@@ -62,59 +62,12 @@ def test_process_path_directives(tmp_path):
     assert processed_content == expected_content
 
 
-def test_process_path_directives_with_base_url(tmp_path):
-    """Test path directives with base_url configured using llms_txt_base_url."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with default directives and base_url using llms_txt_base_url
-    manager.set_config(
-        {
-            "llms_txt_directives": [],
-            "llms_txt_base_url": "https://example.com/docs",
-        }
-    )
-
-    # Create source directory structure
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    manager.srcdir = str(src_dir)
-
-    # Create _sources directory to mimic Sphinx output
-    build_dir = tmp_path / "build"
-    build_dir.mkdir()
-    sources_dir = build_dir / "_sources"
-    sources_dir.mkdir()
-
-    # Create a subdirectory for file placement
-    subdir = src_dir / "subdir"
-    subdir.mkdir()
-    sources_subdir = sources_dir / "subdir"
-    sources_subdir.mkdir()
-
-    # Create a source file with image directives
-    source_content = ".. image:: images/test.png\n"
-
-    # Create source file in sources directory to simulate Sphinx build output
-    source_file = sources_subdir / "page.txt"
-    with open(source_file, "w", encoding="utf-8") as f:
-        f.write(source_content)
-
-    # Process the directives
-    processed_content = manager._process_path_directives(source_content, source_file)
-
-    # Expected: The paths should include the base URL with 'subdir' prefix
-    expected_content = ".. image:: https://example.com/docs/subdir/images/test.png\n"
-
-    assert processed_content == expected_content
-
-
 def test_process_path_directives_with_html_baseurl(tmp_path):
     """Test path directives with base_url configured using html_baseurl."""
     # Create a manager
     manager = LLMSFullManager()
 
-    # Configure the manager with default directives and base_url using html_baseurl (Sphinx built-in)
+    # Configure the manager with default directives and base_url using html_baseurl
     manager.set_config(
         {
             "llms_txt_directives": [],
@@ -151,54 +104,6 @@ def test_process_path_directives_with_html_baseurl(tmp_path):
     processed_content = manager._process_path_directives(source_content, source_file)
 
     # Expected: The paths should include the base URL with 'subdir' prefix
-    expected_content = ".. image:: https://sphinx-docs.org/subdir/images/test.png\n"
-
-    assert processed_content == expected_content
-
-
-def test_process_path_directives_both_base_urls(tmp_path):
-    """Test path directives with both html_baseurl and llms_txt_base_url configured."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with both html_baseurl and llms_txt_base_url (html_baseurl should take precedence)
-    manager.set_config(
-        {
-            "llms_txt_directives": [],
-            "html_baseurl": "https://sphinx-docs.org/",
-            "llms_txt_base_url": "https://example.com/docs",
-        }
-    )
-
-    # Create source directory structure
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    manager.srcdir = str(src_dir)
-
-    # Create _sources directory to mimic Sphinx output
-    build_dir = tmp_path / "build"
-    build_dir.mkdir()
-    sources_dir = build_dir / "_sources"
-    sources_dir.mkdir()
-
-    # Create a subdirectory for file placement
-    subdir = src_dir / "subdir"
-    subdir.mkdir()
-    sources_subdir = sources_dir / "subdir"
-    sources_subdir.mkdir()
-
-    # Create a source file with image directives
-    source_content = ".. image:: images/test.png\n"
-
-    # Create source file in sources directory to simulate Sphinx build output
-    source_file = sources_subdir / "page.txt"
-    with open(source_file, "w", encoding="utf-8") as f:
-        f.write(source_content)
-
-    # Process the directives
-    processed_content = manager._process_path_directives(source_content, source_file)
-
-    # Expected: The paths should include the html_baseurl (which takes precedence) with 'subdir' prefix
     expected_content = ".. image:: https://sphinx-docs.org/subdir/images/test.png\n"
 
     assert processed_content == expected_content
@@ -213,7 +118,7 @@ def test_process_path_directives_absolute_urls(tmp_path):
     manager.set_config(
         {
             "llms_txt_directives": [],
-            "llms_txt_base_url": "https://example.com/docs",
+            "html_baseurl": "https://example.com/docs",
         }
     )
 
@@ -249,7 +154,7 @@ def test_process_path_directives_custom_directives(tmp_path):
     manager.set_config(
         {
             "llms_txt_directives": ["drawio-figure", "drawio-image"],
-            "llms_txt_base_url": "",
+            "html_baseurl": "",
         }
     )
 
@@ -290,7 +195,9 @@ def test_process_path_directives_custom_directives(tmp_path):
 
 
 def test_process_content_end_to_end(tmp_path):
-    """Test the full _process_content method handling both includes and path directives."""
+    """
+    Test the full _process_content method handling both includes and path directives.
+    """
     # Create a manager
     manager = LLMSFullManager()
 
@@ -298,7 +205,7 @@ def test_process_content_end_to_end(tmp_path):
     manager.set_config(
         {
             "llms_txt_directives": ["drawio-figure"],
-            "html_baseurl": "https://sphinx-docs.org/",  # Using html_baseurl (Sphinx built-in)
+            "html_baseurl": "https://sphinx-docs.org/",
         }
     )
 
@@ -354,7 +261,8 @@ def test_process_content_end_to_end(tmp_path):
     expected_content = (
         "Some content.\n"
         "This is included content with an image:\n"
-        # The included image also gets processed by path directives as it's part of the processed content
+        # The included image also gets processed by path directives as it's part of
+        # the processed content
         ".. image:: https://sphinx-docs.org/subdir/img/included.png\n"
         "\n"  # There's an extra newline after the included content
         "More content.\n"

@@ -322,7 +322,6 @@ class LLMSFullManager:
 
         def replace_directive_path(match, base_url=base_url, is_test=is_test):
             prefix = match.group(1)  # The entire directive prefix including whitespace
-            directive = match.group(2)  # Just the directive name
             path = match.group(3).strip()  # The path argument
 
             # Only process relative paths, not absolute paths or URLs
@@ -355,7 +354,8 @@ class LLMSFullManager:
                             rel_doc_dir = os.path.dirname(rel_doc_path)
                             rel_doc_path_parts = rel_doc_path.split("/")
 
-                            # For test subdirectory handling - this is for our test cases
+                            # For test subdirectory handling - this is for our test
+                            # cases
                             if (
                                 len(rel_doc_path_parts) > 0
                                 and rel_doc_path_parts[0] == "subdir"
@@ -365,7 +365,8 @@ class LLMSFullManager:
                                 )
                             # Only add the rel_doc_dir if it's not empty
                             elif rel_doc_dir:
-                                # Join with the original path to form full path relative to srcdir
+                                # Join with the original path to form full path
+                                # relative to srcdir
                                 full_path = os.path.normpath(
                                     os.path.join(rel_doc_dir, path)
                                 )
