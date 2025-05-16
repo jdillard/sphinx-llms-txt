@@ -9,7 +9,7 @@ from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 logger = logging.getLogger(__name__)
 
@@ -163,65 +163,111 @@ class LLMSFullManager:
 
         # Add pages in order
         added_files = set()
+        total_line_count = 0
+        max_lines = self.config.get("llms_txt_max_lines")
+        abort_due_to_max_lines = False
 
         for docname in page_order:
             if docname in docname_to_file:
                 file_path = docname_to_file[docname]
-                content = self._read_source_file(file_path, docname)
+                content, line_count = self._read_source_file(file_path, docname)
+
+                # Check if adding this file would exceed the maximum line count
+                if max_lines is not None and total_line_count + line_count > max_lines:
+                    abort_due_to_max_lines = True
+                    break
+
                 if content:
                     content_parts.append(content)
                     added_files.add(file_path.stem)
+                    total_line_count += line_count
             else:
-                logger.warning(f"Source file not found for: {docname}")
+                logger.warning(f"sphinx-llm-txt: Source file not found for: {docname}")
 
-        # Add any remaining files (in alphabetical order)
-        remaining_files = sorted(
-            [name for name in txt_files if name not in added_files]
-        )
-        if remaining_files:
-            logger.info(f"Adding remaining files: {remaining_files}")
-        for file_stem in remaining_files:
-            file_path = txt_files[file_stem]
-            content = self._read_source_file(file_path, file_stem)
-            if content:
-                content_parts.append(content)
+        # Add any remaining files (in alphabetical order) if not aborted
+        if not abort_due_to_max_lines:
+            remaining_files = sorted(
+                [name for name in txt_files if name not in added_files]
+            )
+            if remaining_files:
+                logger.info(f"Adding remaining files: {remaining_files}")
+            for file_stem in remaining_files:
+                file_path = txt_files[file_stem]
+                content, line_count = self._read_source_file(file_path, file_stem)
 
-        # Write combined file
+                # Check if adding this file would exceed the maximum line count
+                if max_lines is not None and total_line_count + line_count > max_lines:
+                    break
+
+                if content:
+                    content_parts.append(content)
+                    total_line_count += line_count
+
+        # Check if line limit was exceeded before creating the file
+        max_lines = self.config.get("llms_txt_max_lines")
+        if abort_due_to_max_lines or (
+            max_lines is not None and total_line_count > max_lines
+        ):
+            logger.warning(
+                f"sphinx-llm-txt: Max line limit ({max_lines}) exceeded:"
+                f" {total_line_count} > {max_lines}. "
+                f"Not creating llms-full.txt file."
+            )
+
+            # Log summary information if requested
+            if self.config.get("llms_txt_verbose"):
+                self._log_summary_info(page_order, total_line_count)
+
+            return
+
+        # Write combined file if limit wasn't exceeded
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(content_parts))
 
             logger.info(
-                f"sphinx-llms-txt: created {output_path} with {len(txt_files)} sources"
+                f"sphinx-llms-txt: created {output_path} with {len(txt_files)}"
+                f" sources and {total_line_count} lines"
             )
 
             # Log summary information if requested
             if self.config.get("llms_txt_verbose"):
-                self._log_summary_info(page_order)
+                self._log_summary_info(page_order, total_line_count)
 
         except Exception as e:
-            logger.error(f"Error writing combined sources file: {e}")
+            logger.error(f"sphinx-llm-txt: Error writing combined sources file: {e}")
 
-    def _read_source_file(self, file_path: Path, docname: str) -> str:
-        """Read and format a single source file."""
+    def _read_source_file(self, file_path: Path, docname: str) -> tuple:
+        """Read and format a single source file.
+
+        Returns:
+            tuple: (content_str, line_count) where line_count is the number of lines
+                   in the file
+        """
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
-            section_lines = [content, ""]
+            # Count the lines in the content
+            line_count = content.count("\n") + (0 if content.endswith("\n") else 1)
 
-            return "\n".join(section_lines)
+            section_lines = [content, ""]
+            content_str = "\n".join(section_lines)
+
+            # Add 2 for the section_lines (content + empty line)
+            return content_str, line_count + 1
 
         except Exception as e:
-            logger.error(f"Error reading source file {file_path}: {e}")
-            return ""
+            logger.error(f"sphinx-llm-txt: Error reading source file {file_path}: {e}")
+            return "", 0
 
-    def _log_summary_info(self, page_order: List[str]):
+    def _log_summary_info(self, page_order: List[str], total_line_count: int = 0):
         """Log summary information to the logger."""
         logger.info("")
         logger.info("llms-txt Summary")
         logger.info("================")
         logger.info(f"Total pages: {len(page_order)}")
+
         logger.info(f"Configuration: {self.config}")
         logger.info("Page order:")
         for i, docname in enumerate(page_order, 1):
@@ -259,6 +305,7 @@ def build_finished(app: Sphinx, exception):
         config = {
             "llms_txt_filename": app.config.llms_txt_filename,
             "llms_txt_verbose": app.config.llms_txt_verbose,
+            "llms_txt_max_lines": app.config.llms_txt_max_lines,
         }
         _manager.set_config(config)
 
@@ -279,6 +326,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     # Add configuration options
     app.add_config_value("llms_txt_filename", "llms-full.txt", "env")
     app.add_config_value("llms_txt_verbose", False, "env")
+    app.add_config_value("llms_txt_max_lines", None, "env")
 
     # Connect to Sphinx events
     app.connect("doctree-resolved", doctree_resolved)

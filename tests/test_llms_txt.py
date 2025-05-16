@@ -60,6 +60,7 @@ def test_set_config():
     config = {
         "llms_txt_filename": "custom.txt",
         "llms_txt_verbose": True,
+        "llms_txt_max_lines": 1000,
     }
     manager.set_config(config)
     assert manager.config == config
