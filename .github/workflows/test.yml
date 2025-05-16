@@ -39,9 +39,9 @@ jobs:
     #   run: |
     #     mypy sphinx_cmd
 
-    # - name: Test with pytest
-    #   run: |
-    #     pytest
+    - name: Test with pytest
+      run: |
+        pytest
 
     # - name: Build package
     #   run: |
