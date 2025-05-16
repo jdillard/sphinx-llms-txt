@@ -74,8 +74,6 @@ class LLMSFullManager:
                     if toctree:
                         from docutils import nodes
 
-                        # Use findall() instead of traverse() to avoid deprecation warning
-                        # Convert generator to list for iteration
                         for node in list(toctree.findall(nodes.reference)):
                             if "refuri" in node.attributes:
                                 refuri = node.attributes["refuri"]
