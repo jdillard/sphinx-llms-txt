@@ -1,0 +1,21 @@
+*.pyc
+.idea/
+*.code-workspace
+
+# Unit test / coverage reports
+.tox
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# Environments
+.venv
+
+# Sphinx documentation
+docs/_build/
+
+# vale packages
+docs/_vale/Microsoft/
+docs/_vale/write-good/
