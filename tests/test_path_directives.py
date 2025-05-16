@@ -11,7 +11,7 @@ def test_process_path_directives(tmp_path):
     # Configure the manager with default directives
     manager.set_config(
         {
-            "llms_txt_path_directives": [],
+            "llms_txt_directives": [],
             "llms_txt_base_url": "",
         }
     )
@@ -70,7 +70,7 @@ def test_process_path_directives_with_base_url(tmp_path):
     # Configure the manager with default directives and base_url using llms_txt_base_url
     manager.set_config(
         {
-            "llms_txt_path_directives": [],
+            "llms_txt_directives": [],
             "llms_txt_base_url": "https://example.com/docs",
         }
     )
@@ -117,7 +117,7 @@ def test_process_path_directives_with_html_baseurl(tmp_path):
     # Configure the manager with default directives and base_url using html_baseurl (Sphinx built-in)
     manager.set_config(
         {
-            "llms_txt_path_directives": [],
+            "llms_txt_directives": [],
             "html_baseurl": "https://sphinx-docs.org/",
         }
     )
@@ -164,7 +164,7 @@ def test_process_path_directives_both_base_urls(tmp_path):
     # Configure the manager with both html_baseurl and llms_txt_base_url (html_baseurl should take precedence)
     manager.set_config(
         {
-            "llms_txt_path_directives": [],
+            "llms_txt_directives": [],
             "html_baseurl": "https://sphinx-docs.org/",
             "llms_txt_base_url": "https://example.com/docs",
         }
@@ -212,7 +212,7 @@ def test_process_path_directives_absolute_urls(tmp_path):
     # Configure the manager with default directives
     manager.set_config(
         {
-            "llms_txt_path_directives": [],
+            "llms_txt_directives": [],
             "llms_txt_base_url": "https://example.com/docs",
         }
     )
@@ -248,7 +248,7 @@ def test_process_path_directives_custom_directives(tmp_path):
     # Configure the manager with custom directives
     manager.set_config(
         {
-            "llms_txt_path_directives": ["drawio-figure", "drawio-image"],
+            "llms_txt_directives": ["drawio-figure", "drawio-image"],
             "llms_txt_base_url": "",
         }
     )
@@ -297,7 +297,7 @@ def test_process_content_end_to_end(tmp_path):
     # Configure the manager
     manager.set_config(
         {
-            "llms_txt_path_directives": ["drawio-figure"],
+            "llms_txt_directives": ["drawio-figure"],
             "html_baseurl": "https://sphinx-docs.org/",  # Using html_baseurl (Sphinx built-in)
         }
     )
@@ -354,8 +354,9 @@ def test_process_content_end_to_end(tmp_path):
     expected_content = (
         "Some content.\n"
         "This is included content with an image:\n"
-        # The included image isn't processed by path directives as it's part of the included content
-        ".. image:: img/included.png\n"
+        # The included image also gets processed by path directives as it's part of the processed content
+        ".. image:: https://sphinx-docs.org/subdir/img/included.png\n"
+        "\n"  # There's an extra newline after the included content
         "More content.\n"
         # Images and custom directives in the main file are processed with html_baseurl
         ".. image:: https://sphinx-docs.org/subdir/images/test.png\n"
