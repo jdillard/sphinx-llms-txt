@@ -42,12 +42,12 @@ extensions = [
 
 - **Type**: list of strings
 - **Default**: `[]` (empty list)
-- **Description**: List of custom directive names to process for path resolution in addition to the default ones ('image' and 'figure').
+- **Description**: List of custom directive names to process for path resolution.
 
 ## Features
 
 - Automatically add content from `include` directives
-- Resolves relative paths in directives like `.. image::` and `.. figure::` to use full paths
+- Resolves relative paths in directives like `image` and `figure` to use full paths
   - Ability to add list of custom directives with `llms_txt_directives`
   - Optionally, prepend a base URL using Sphinx's `html_baseurl`
 
