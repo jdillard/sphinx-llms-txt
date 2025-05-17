@@ -1,6 +1,6 @@
-# Sphinx llms-full.txt Extension
+# Sphinx llms.txt generator
 
-A Sphinx extension that creates a single combined documentation `llms-full.txt` file, written in reStructuredText.
+A Sphinx extension that generates a summary `llms.txt` file, written in Markdown, and a single combined documentation `llms-full.txt` file, written in reStructuredText.
 
 ## Installation
 
@@ -20,23 +20,35 @@ extensions = [
 
 ## Configuration Options
 
-### `llms_txt_filename`
+### `llms_txt_full_file`
+
+- **Type**: boolean
+- **Default**: `'True`
+- **Description**: Whether to write the single output file
+
+### `llms_txt_full_filename`
 
 - **Type**: string
 - **Default**: `'llms-full.txt'`
-- **Description**: Name of the output file
+- **Description**: Name of the single output file
 
-### `llms_txt_verbose`
-
-- **Type**: boolean
-- **Default**: `False`
-- **Description**: Whether to include a summary in the build output
-
-### `llms_txt_max_lines`
+### `llms_txt_full_max_size`
 
 - **Type**: integer or `None`
 - **Default**: `None` (no limit)
-- **Description**: Sets a maximum line count for `llms_txt_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
+- **Description**: Sets a maximum line count for `llms_txt_full_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
+
+### `llms_txt_file`
+
+- **Type**: boolean
+- **Default**: `True`
+- **Description**: Whether to write the summary information file
+
+### `llms_txt_filename`
+
+- **Type**: string
+- **Default**: `llms.txt`
+- **Description**: Name of the summary information file
 
 ### `llms_txt_directives`
 
@@ -44,8 +56,21 @@ extensions = [
 - **Default**: `[]` (empty list)
 - **Description**: List of custom directive names to process for path resolution.
 
+### `llms_txt_title`
+
+- **Type**: string or `None`
+- **Default**: `None`
+- **Description**: Optional title to use as the heading in `llms.txt`. Overrides the the project name.
+
+### `llms_txt_summary`
+
+- **Type**: string or `None`
+- **Default**: `None`
+- **Description**: Optional, but recommended, summary description for `llms.txt`.
+
 ## Features
 
+- Creates `llms.txt` and `llms-full.txt`
 - Automatically add content from `include` directives
 - Resolves relative paths in directives like `image` and `figure` to use full paths
   - Ability to add list of custom directives with `llms_txt_directives`

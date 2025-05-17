@@ -26,6 +26,7 @@ class LLMSFullManager:
         self.env: BuildEnvironment = None
         self.srcdir: Optional[str] = None
         self.outdir: Optional[str] = None
+        self.app: Optional[Sphinx] = None
 
     def set_master_doc(self, master_doc: str):
         """Set the master document name."""
@@ -43,6 +44,10 @@ class LLMSFullManager:
     def set_config(self, config: Dict[str, Any]):
         """Set configuration options."""
         self.config = config
+
+    def set_app(self, app: Sphinx):
+        """Set the Sphinx application reference."""
+        self.app = app
 
     def get_page_order(self) -> List[str]:
         """Get the correct page order from the toctree structure."""
@@ -118,7 +123,7 @@ class LLMSFullManager:
             return
 
         # Determine output file name and location
-        output_filename = self.config.get("llms_txt_filename")
+        output_filename = self.config.get("llms_txt_full_filename")
         output_path = Path(outdir) / output_filename
 
         # Find sources directory
@@ -172,7 +177,7 @@ class LLMSFullManager:
         # Add pages in order
         added_files = set()
         total_line_count = 0
-        max_lines = self.config.get("llms_txt_max_lines")
+        max_lines = self.config.get("llms_txt_full_max_size")
         abort_due_to_max_lines = False
 
         for docname in page_order:
@@ -212,7 +217,7 @@ class LLMSFullManager:
                     total_line_count += line_count
 
         # Check if line limit was exceeded before creating the file
-        max_lines = self.config.get("llms_txt_max_lines")
+        max_lines = self.config.get("llms_txt_full_max_size")
         if abort_due_to_max_lines or (
             max_lines is not None and total_line_count > max_lines
         ):
@@ -223,8 +228,8 @@ class LLMSFullManager:
             )
 
             # Log summary information if requested
-            if self.config.get("llms_txt_verbose"):
-                self._log_summary_info(page_order, total_line_count)
+            if self.config.get("llms_txt_file"):
+                self._write_verbose_info_to_file(page_order, total_line_count)
 
             return
 
@@ -239,8 +244,8 @@ class LLMSFullManager:
             )
 
             # Log summary information if requested
-            if self.config.get("llms_txt_verbose"):
-                self._log_summary_info(page_order, total_line_count)
+            if self.config.get("llms_txt_file"):
+                self._write_verbose_info_to_file(page_order, total_line_count)
 
         except Exception as e:
             logger.error(f"sphinx-llm-txt: Error writing combined sources file: {e}")
@@ -478,18 +483,37 @@ class LLMSFullManager:
         processed_content = include_pattern.sub(replace_include, content)
         return processed_content
 
-    def _log_summary_info(self, page_order: List[str], total_line_count: int = 0):
-        """Log summary information to the logger."""
-        logger.info("")
-        logger.info("llms-txt Summary")
-        logger.info("================")
-        logger.info(f"Total pages: {len(page_order)}")
+    def _write_verbose_info_to_file(
+        self, page_order: List[str], total_line_count: int = 0
+    ):
+        """Write summary information to the llms.txt file."""
+        if not self.outdir:
+            logger.warning(
+                "sphinx-llms-txt: Cannot write verbose info to file: outdir not set"
+            )
+            return
 
-        logger.info(f"Configuration: {self.config}")
-        logger.info("Page order:")
-        for i, docname in enumerate(page_order, 1):
-            title = self.page_titles.get(docname, docname)
-            logger.info(f"{i:3d}. {docname} - {title}")
+        output_path = Path(self.outdir) / self.config.get("llms_txt_filename")
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                project_name = "llms-txt Summary"
+                if self.app and hasattr(self.app.config, "project"):
+                    project_name = self.app.config.project
+                f.write(f"# {project_name}\n\n")
+
+                # Add description if available
+                description = self.config.get("llms_txt_summary", "")
+                if description:
+                    f.write(f"> {description}\n\n")
+
+                f.write("## Docs\n\n")
+                for i, docname in enumerate(page_order, 1):
+                    title = self.page_titles.get(docname, docname)
+                    f.write(f"- [{title}](/{docname}.html)\n")
+
+            logger.info(f"sphinx-llms-txt: created {output_path}")
+        except Exception as e:
+            logger.error(f"sphinx-llms-txt: Error writing verbose info to file: {e}")
 
 
 # Global manager instance
@@ -517,13 +541,17 @@ def build_finished(app: Sphinx, exception):
         # Set the environment and master doc in the manager
         _manager.set_env(app.env)
         _manager.set_master_doc(app.config.master_doc)
+        _manager.set_app(app)
 
         # Set up configuration
         config = {
+            "llms_txt_file": app.config.llms_txt_file,
             "llms_txt_filename": app.config.llms_txt_filename,
-            "llms_txt_verbose": app.config.llms_txt_verbose,
-            "llms_txt_max_lines": app.config.llms_txt_max_lines,
+            "llms_txt_full_file": app.config.llms_txt_full_file,
+            "llms_txt_full_filename": app.config.llms_txt_full_filename,
+            "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
             "llms_txt_directives": app.config.llms_txt_directives,
+            "llms_txt_summary": app.config.llms_txt_summary,
             "html_baseurl": getattr(app.config, "html_baseurl", ""),
         }
         _manager.set_config(config)
@@ -543,10 +571,13 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     """Set up the Sphinx extension."""
 
     # Add configuration options
-    app.add_config_value("llms_txt_filename", "llms-full.txt", "env")
-    app.add_config_value("llms_txt_verbose", False, "env")
-    app.add_config_value("llms_txt_max_lines", None, "env")
+    app.add_config_value("llms_txt_file", True, "env")
+    app.add_config_value("llms_txt_filename", "llms.txt", "env")
+    app.add_config_value("llms_txt_full_file", True, "env")
+    app.add_config_value("llms_txt_full_filename", "llms-full.txt", "env")
+    app.add_config_value("llms_txt_full_max_size", None, "env")
     app.add_config_value("llms_txt_directives", [], "env")
+    app.add_config_value("llms_txt_summary", None, "env")
 
     # Connect to Sphinx events
     app.connect("doctree-resolved", doctree_resolved)
