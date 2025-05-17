@@ -39,6 +39,7 @@ def test_custom_filename(temp_dir, rootdir):
     from sphinx.testing.util import SphinxTestApp
 
     src_dir = rootdir / "basic"
+    print(src_dir)
 
     # Create a copy of the configuration with a different filename
     custom_conf = src_dir / "conf_custom.py"
@@ -46,8 +47,8 @@ def test_custom_filename(temp_dir, rootdir):
         conf_content = f.read()
 
     conf_content = conf_content.replace(
-        'llms_txt_filename = "test-llms-full.txt"',
-        'llms_txt_filename = "custom-name.txt"',
+        'llms_txt_full_filename = "test-llms-full.txt"',
+        'llms_txt_full_filename = "custom-name.txt"',
     )
 
     with open(custom_conf, "w") as f:
@@ -59,7 +60,7 @@ def test_custom_filename(temp_dir, rootdir):
         builddir=temp_dir,
         buildername="html",
         freshenv=True,
-        confoverrides={"llms_txt_filename": "custom-name.txt"},
+        confoverrides={"llms_txt_full_filename": "custom-name.txt"},
     )
 
     app.build()
@@ -94,9 +95,8 @@ def test_max_lines_limit(temp_dir, rootdir):
         buildername="html",
         freshenv=True,
         confoverrides={
-            "llms_txt_filename": "limited.txt",
-            "llms_txt_max_lines": 10,  # Set a small limit to trigger the warning
-            "llms_txt_verbose": True,
+            "llms_txt_full_filename": "limited.txt",
+            "llms_txt_full_max_size": 10,  # Set a small limit to trigger the warning
         },
     )
 

@@ -58,9 +58,9 @@ def test_set_config():
     """Test setting configuration."""
     manager = LLMSFullManager()
     config = {
-        "llms_txt_filename": "custom.txt",
-        "llms_txt_verbose": True,
-        "llms_txt_max_lines": 1000,
+        "llms_txt_full_filename": "custom.txt",
+        "llms_txt_file": True,
+        "llms_txt_full_max_size": 1000,
     }
     manager.set_config(config)
     assert manager.config == config
@@ -175,3 +175,47 @@ def test_process_includes_with_relative_paths(tmp_path):
         " directory.\nLine after include."
     )
     assert processed_content == expected_content
+
+
+def test_write_verbose_info_to_file(tmp_path):
+    """Test writing verbose info to a file."""
+    # Create a manager
+    manager = LLMSFullManager()
+
+    # Set up a build directory
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+
+    # Set the outdir on the manager
+    manager.outdir = str(build_dir)
+
+    # Set configuration with verbose_file enabled
+    config = {
+        "llms_txt_file": True,
+        "llms_txt_full_max_size": 1000,
+        "llms_txt_filename": "llms.txt",
+    }
+    manager.set_config(config)
+
+    # Add some page titles
+    manager.update_page_title("index", "Home Page")
+    manager.update_page_title("about", "About Us")
+
+    # Create a page order
+    page_order = ["index", "about"]
+
+    # Call the method to write verbose info to file
+    manager._write_verbose_info_to_file(page_order, 500)
+
+    # Check that the file was created
+    verbose_file = build_dir / "llms.txt"
+    assert verbose_file.exists()
+
+    # Read the file content
+    with open(verbose_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Check that the content contains expected information
+    assert "## Docs" in content
+    assert "- [Home Page](/index.html)" in content
+    assert "- [About Us](/about.html)" in content
