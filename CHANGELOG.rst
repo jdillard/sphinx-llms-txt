@@ -6,6 +6,7 @@ Changelog
 
 - Refactor LLMSFullManager with clearer class structure
 - Add ``html_baseurl`` to **llms.txt** docs links
+- Make glob pattern recursive
 
 0.2.1
 -----
