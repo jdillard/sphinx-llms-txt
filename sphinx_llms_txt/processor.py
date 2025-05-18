@@ -5,11 +5,26 @@ Document processor module for sphinx-llms-txt.
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from sphinx.util import logging
 
 logger = logging.getLogger(__name__)
+
+
+def build_directive_pattern(directives):
+    """Build a regex pattern for directives.
+
+    Args:
+        directives: List of directive names to match
+
+    Returns:
+        A compiled regex pattern that matches the specified directives
+    """
+    directives_pattern = "|".join(re.escape(d) for d in directives)
+    return re.compile(
+        r"^(\s*\.\.\s+(" + directives_pattern + r")::\s+)([^\s].+?)$", re.MULTILINE
+    )
 
 
 class DocumentProcessor:
@@ -53,10 +68,7 @@ class DocumentProcessor:
         path_directives = set(default_path_directives + custom_path_directives)
 
         # Build the regex pattern to match all configured directives
-        directives_pattern = "|".join(re.escape(d) for d in path_directives)
-        directive_pattern = re.compile(
-            r"^(\s*\.\.\s+(" + directives_pattern + r")::\s+)([^\s].+?)$", re.MULTILINE
-        )
+        directive_pattern = build_directive_pattern(path_directives)
 
         # Get the base URL from Sphinx's html_baseurl if set
         base_url = self.config.get("html_baseurl", "")
@@ -148,11 +160,11 @@ class DocumentProcessor:
             Processed content with include directives replaced with included content
         """
         # Find all include directives using regex
-        include_pattern = re.compile(r"^\.\.\s+include::\s+([^\s]+)\s*$", re.MULTILINE)
+        include_pattern = build_directive_pattern(["include"])
 
         # Function to replace each include with content
         def replace_include(match):
-            include_path = match.group(1)
+            include_path = match.group(3)
 
             # Try multiple possible paths for the include file
             possible_paths = []
