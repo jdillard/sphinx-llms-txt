@@ -15,8 +15,8 @@ html_theme = "alabaster"
 html_static_path = ["_static"]
 
 # Configuration for sphinx-llms-txt
-llms_txt_filename = "test-llms-full.txt"
-llms_txt_verbose = True
+llms_txt_full_filename = "test-llms-full.txt"
+llms_txt_file = True
 
 # Master document
 master_doc = "index"
