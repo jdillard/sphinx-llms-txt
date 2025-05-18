@@ -89,9 +89,15 @@ class FileWriter:
                     f.write(f"> {description}\n\n")
 
                 f.write("## Docs\n\n")
+                # Get base URL from config
+                base_url = self.config.get("html_baseurl", "/")
+                # Ensure base_url ends with a trailing slash
+                if not base_url.endswith("/"):
+                    base_url += "/"
+
                 for docname in page_order:
                     title = page_titles.get(docname, docname)
-                    f.write(f"- [{title}](/{docname}.html)\n")
+                    f.write(f"- [{title}]({base_url}{docname}.html)\n")
 
             logger.info(f"sphinx-llms-txt: created {output_path}")
             return True

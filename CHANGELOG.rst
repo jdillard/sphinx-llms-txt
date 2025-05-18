@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Refactor LLMSFullManager with clearer class structure
+- Add ``html_baseurl`` to **llms.txt** docs links
 
 0.2.1
 -----
