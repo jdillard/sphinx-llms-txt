@@ -279,5 +279,58 @@ def test_write_verbose_info_to_file(tmp_path):
 
     # Check that the content contains expected information
     assert "## Docs" in content
+    # Without html_baseurl, URLs should start with /
     assert "- [Home Page](/index.html)" in content
     assert "- [About Us](/about.html)" in content
+
+
+def test_write_verbose_info_with_baseurl(tmp_path):
+    """Test writing verbose info to a file with html_baseurl set."""
+    # Create a build directory
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+
+    # Create writer with configuration including html_baseurl
+    config = {
+        "llms_txt_file": True,
+        "llms_txt_full_max_size": 1000,
+        "llms_txt_filename": "llms.txt",
+        "html_baseurl": "https://example.com",
+    }
+    writer = FileWriter(config, str(build_dir))
+
+    # Create page titles
+    page_titles = {
+        "index": "Home Page",
+        "about": "About Us",
+    }
+
+    # Create a page order
+    page_order = ["index", "about"]
+
+    # Call the method to write verbose info to file
+    writer.write_verbose_info_to_file(page_order, page_titles)
+
+    # Check that the file was created
+    verbose_file = build_dir / "llms.txt"
+    assert verbose_file.exists()
+
+    # Read the file content
+    with open(verbose_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Check that the content contains expected information with baseurl
+    assert "## Docs" in content
+    assert "- [Home Page](https://example.com/index.html)" in content
+    assert "- [About Us](https://example.com/about.html)" in content
+
+    # Test with baseurl without trailing slash
+    config["html_baseurl"] = "https://example.org"
+    writer = FileWriter(config, str(build_dir))
+    writer.write_verbose_info_to_file(page_order, page_titles)
+
+    with open(verbose_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    assert "- [Home Page](https://example.org/index.html)" in content
+    assert "- [About Us](https://example.org/about.html)" in content
