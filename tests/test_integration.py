@@ -115,3 +115,46 @@ def test_max_lines_limit(temp_dir, rootdir):
     # Safe unlink
     if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
         app.docutils_conf_path.unlink()
+
+
+def test_title_override(temp_dir, rootdir):
+    """Test that the title override works correctly."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    # Custom title to override the default project name
+    custom_title = "Custom Title Override"
+
+    # Create a new test app with the title override
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_title": custom_title,
+        },
+    )
+
+    app.build()
+
+    # Check if the summary file was created
+    summary_file = Path(app.outdir) / "llms.txt"
+    assert summary_file.exists(), f"Summary file {summary_file} does not exist"
+
+    # Read the content of the summary file
+    content = summary_file.read_text()
+
+    # Check that the custom title was used
+    assert f"# {custom_title}" in content, f"Custom title '{custom_title}' not found in summary file"
+    # Ensure the default project name was NOT used
+    assert not f"# Test Project" in content, "Default project name was used instead of custom title"
+
+    # Custom cleanup to avoid missing_ok issue
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+
+    # Safe unlink
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
