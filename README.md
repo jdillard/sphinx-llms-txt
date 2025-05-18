@@ -57,7 +57,7 @@ extensions = [
 ### `llms_txt_directives`
 
 - **Type**: list of strings
-- **Default**: `[]` (empty list)
+- **Default**: `[]`
 - **Description**: List of custom directive names to process for path resolution.
 
 ### `llms_txt_title`
