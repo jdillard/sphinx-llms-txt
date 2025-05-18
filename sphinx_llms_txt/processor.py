@@ -166,7 +166,8 @@ class DocumentProcessor:
                             full_path = os.path.normpath(os.path.join("subdir", path))
                         # Only add the rel_doc_dir if it's not empty
                         elif rel_doc_dir:
-                            # Join with the original path to form full path relative to srcdir
+                            # Join with the original path to form full path relative
+                            # to srcdir
                             full_path = os.path.normpath(
                                 os.path.join(rel_doc_dir, path)
                             )
@@ -207,7 +208,8 @@ class DocumentProcessor:
             # Relative to the source file (in _sources directory)
             possible_paths.append((source_path.parent / include_path).resolve())
 
-            # If we're in _sources directory, try relative to the original source directory
+            # If we're in _sources directory, try relative to the original source
+            # directory
             if "_sources" in str(source_path):
                 # Extract the relative path portion from the source path
                 rel_path, rel_dir, _ = self._extract_relative_document_path(source_path)
@@ -217,7 +219,8 @@ class DocumentProcessor:
                     # Try in the srcdir root
                     possible_paths.append((Path(self.srcdir) / include_path).resolve())
 
-                    # If we have a relative path, try in the corresponding source subdirectory
+                    # If we have a relative path, try in the corresponding source
+                    # subdirectory
                     if rel_path and rel_dir:
                         possible_paths.append(
                             (Path(self.srcdir) / rel_dir / include_path).resolve()
