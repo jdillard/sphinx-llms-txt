@@ -162,3 +162,73 @@ def test_title_override(temp_dir, rootdir):
     # Safe unlink
     if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
         app.docutils_conf_path.unlink()
+
+
+def test_exclusion(temp_dir, rootdir):
+    """Test that the exclude patterns work correctly."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    # Create a new test app with exclude patterns
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_full_filename": "excluded.txt",
+            "llms_txt_exclude": [
+                "page1",
+                "page_with_*",
+            ],  # Exclude page1 and any page starting with page_with_
+        },
+    )
+
+    app.build()
+
+    # Check if the output file was created
+    output_file = Path(app.outdir) / "excluded.txt"
+    assert output_file.exists(), f"Output file {output_file} does not exist"
+
+    # Read the content of the output file
+    content = output_file.read_text()
+
+    # Check that index and page2 content is included
+    assert (
+        "Welcome to Test Project's documentation!" in content
+    )  # Index should be included
+    assert "Page 2 Title" in content  # page2 title should be included
+    assert "Content for section A" in content  # Content from page2 should be included
+
+    # Check that excluded content is NOT included
+    assert "Page 1 Title" not in content  # page1 title should be excluded
+    assert (
+        "Content for section 1" not in content
+    )  # Content from page1 should be excluded
+    assert (
+        "Page With Include" not in content
+    )  # page_with_include title should be excluded
+
+    # Extra debug info for test
+    print(f"\nContent snippet: {content[:500]}...\n")
+
+    # Check that none of the content from page1 appears
+    page1_phrases = [
+        "Page 1 Title",
+        "This is the content of page 1",
+        "Section 1",
+        "Content for section 1",
+        "Section 2",
+        "Content for section 2",
+    ]
+    for phrase in page1_phrases:
+        assert phrase not in content, f"Found excluded content: '{phrase}'"
+
+    # Custom cleanup to avoid missing_ok issue
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+
+    # Safe unlink
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
