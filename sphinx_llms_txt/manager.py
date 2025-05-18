@@ -106,7 +106,7 @@ class LLMSFullManager:
 
         # Collect all available source files
         txt_files = {}
-        for f in sources_dir.glob("*.txt"):
+        for f in sources_dir.glob("**/*.txt"):
             logger.debug(f"sphinx-llms-txt: Found source file: {f.stem} at {f}")
             txt_files[f.stem] = f
 
