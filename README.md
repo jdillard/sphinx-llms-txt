@@ -26,7 +26,7 @@ extensions = [
 ### `llms_txt_full_file`
 
 - **Type**: boolean
-- **Default**: `'True`
+- **Default**: `'True'`
 - **Description**: Whether to write the single output file
 
 ### `llms_txt_full_filename`
