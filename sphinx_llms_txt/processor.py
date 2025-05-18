@@ -5,7 +5,7 @@ Document processor module for sphinx-llms-txt.
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from sphinx.util import logging
 
