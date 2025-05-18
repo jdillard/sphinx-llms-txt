@@ -11,7 +11,7 @@ from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
 
-__version__ = "0.2.0"
+__version__ = "0.2.1"
 
 logger = logging.getLogger(__name__)
 
@@ -122,6 +122,18 @@ class LLMSFullManager:
             )
             return
 
+        # Apply exclusion filter if configured
+        exclude_patterns = self.config.get("llms_txt_exclude")
+        if exclude_patterns:
+            page_order = [
+                page
+                for page in page_order
+                if not any(
+                    self._match_exclude_pattern(page, pattern)
+                    for pattern in exclude_patterns
+                )
+            ]
+
         # Determine output file name and location
         output_filename = self.config.get("llms_txt_full_filename")
         output_path = Path(outdir) / output_filename
@@ -148,13 +160,30 @@ class LLMSFullManager:
         # Collect all available source files
         txt_files = {}
         for f in sources_dir.glob("*.txt"):
+            logger.debug(f"sphinx-llms-txt: Found source file: {f.stem} at {f}")
             txt_files[f.stem] = f
+
+        # Log discovered files and page order
+        logger.debug(f"sphinx-llms-txt: Found {len(txt_files)} source files")
+        logger.debug(f"sphinx-llms-txt: Page order (after exclusion): {page_order}")
+
+        # Log exclusion patterns
+        exclude_patterns = self.config.get("llms_txt_exclude")
+        if exclude_patterns:
+            logger.debug(f"sphinx-llms-txt: Exclusion patterns: {exclude_patterns}")
 
         # Create a mapping from docnames to actual file names
         docname_to_file = {}
 
         # Try exact matches first
         for docname in page_order:
+            # Skip excluded pages
+            if any(
+                self._match_exclude_pattern(docname, pattern)
+                for pattern in exclude_patterns
+            ):
+                continue
+
             if docname in txt_files:
                 docname_to_file[docname] = txt_files[docname]
             else:
@@ -190,7 +219,26 @@ class LLMSFullManager:
                     abort_due_to_max_lines = True
                     break
 
-                if content:
+                # Double-check this file should be included (not in excluded patterns)
+                exclude_patterns = self.config.get("llms_txt_exclude")
+                file_stem = file_path.stem
+                should_include = True
+
+                if exclude_patterns:
+                    # Check stem and docname against exclusion patterns
+                    if any(
+                        self._match_exclude_pattern(file_stem, pattern)
+                        for pattern in exclude_patterns
+                    ) or any(
+                        self._match_exclude_pattern(docname, pattern)
+                        for pattern in exclude_patterns
+                    ):
+                        logger.debug(
+                            f"sphinx-llms-txt: Final exclusion check removed: {docname}"
+                        )
+                        should_include = False
+
+                if content and should_include:
                     content_parts.append(content)
                     added_files.add(file_path.stem)
                     total_line_count += line_count
@@ -199,8 +247,32 @@ class LLMSFullManager:
 
         # Add any remaining files (in alphabetical order) if not aborted
         if not abort_due_to_max_lines:
+            # Apply the same exclusion filter to remaining files
+            exclude_patterns = self.config.get("llms_txt_exclude")
+
+            # Create a set of files to exclude based on their basename
+            excluded_files = set()
+            for pattern in exclude_patterns:
+                if "*" not in pattern and "?" not in pattern:
+                    # For exact patterns, add variants
+                    excluded_files.add(pattern)
+                    excluded_files.add(f"{pattern}.rst")
+                    excluded_files.add(f"{pattern}.txt")
+                    excluded_files.add(pattern.replace("-", "_"))
+                    excluded_files.add(pattern.replace("_", "-"))
+
+            # Filter remaining files
             remaining_files = sorted(
-                [name for name in txt_files if name not in added_files]
+                [
+                    name
+                    for name in txt_files
+                    if name not in added_files
+                    and name not in excluded_files
+                    and not any(
+                        self._match_exclude_pattern(name, pattern)
+                        for pattern in exclude_patterns
+                    )
+                ]
             )
             if remaining_files:
                 logger.info(f"Adding remaining files: {remaining_files}")
@@ -212,7 +284,24 @@ class LLMSFullManager:
                 if max_lines is not None and total_line_count + line_count > max_lines:
                     break
 
-                if content:
+                # Double-check that this file should be included
+                should_include = True
+                file_stem = file_path.stem
+                exclude_patterns = self.config.get("llms_txt_exclude")
+
+                if exclude_patterns:
+                    # Check stem against exclusion patterns
+                    if any(
+                        self._match_exclude_pattern(file_stem, pattern)
+                        for pattern in exclude_patterns
+                    ):
+                        logger.debug(
+                            "sphinx-llms-txt: Final exclusion check removed remaining"
+                            f" file: {file_stem}"
+                        )
+                        should_include = False
+
+                if content and should_include:
                     content_parts.append(content)
                     total_line_count += line_count
 
@@ -260,7 +349,23 @@ class LLMSFullManager:
             tuple: (content_str, line_count) where line_count is the number of lines
                    in the file
         """
+        # Check if this file should be excluded by looking at the doc name
+        exclude_patterns = self.config.get("llms_txt_exclude")
+        if exclude_patterns and any(
+            self._match_exclude_pattern(docname, pattern)
+            for pattern in exclude_patterns
+        ):
+            return "", 0
+
         try:
+            # Check if the file stem (without extension) should be excluded
+            file_stem = file_path.stem
+            if exclude_patterns and any(
+                self._match_exclude_pattern(file_stem, pattern)
+                for pattern in exclude_patterns
+            ):
+                return "", 0
+
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
 
@@ -483,6 +588,28 @@ class LLMSFullManager:
         processed_content = include_pattern.sub(replace_include, content)
         return processed_content
 
+    def _match_exclude_pattern(self, docname: str, pattern: str) -> bool:
+        """Check if a document name matches an exclude pattern.
+
+        Args:
+            docname: The document name to check
+            pattern: The pattern to match against
+
+        Returns:
+            True if the document should be excluded, False otherwise
+        """
+        # Exact match
+        if docname == pattern:
+            return True
+
+        # Glob-style pattern matching
+        import fnmatch
+
+        if fnmatch.fnmatch(docname, pattern):
+            return True
+
+        return False
+
     def _write_verbose_info_to_file(
         self, page_order: List[str], total_line_count: int = 0
     ):
@@ -561,6 +688,7 @@ def build_finished(app: Sphinx, exception):
             "llms_txt_full_filename": app.config.llms_txt_full_filename,
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
             "llms_txt_directives": app.config.llms_txt_directives,
+            "llms_txt_exclude": app.config.llms_txt_exclude,
             "html_baseurl": getattr(app.config, "html_baseurl", ""),
         }
         _manager.set_config(config)
@@ -588,6 +716,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_directives", [], "env")
     app.add_config_value("llms_txt_title", None, "env")
     app.add_config_value("llms_txt_summary", None, "env")
+    app.add_config_value("llms_txt_exclude", [], "env")
 
     # Connect to Sphinx events
     app.connect("doctree-resolved", doctree_resolved)

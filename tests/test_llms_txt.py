@@ -177,6 +177,23 @@ def test_process_includes_with_relative_paths(tmp_path):
     assert processed_content == expected_content
 
 
+def test_match_exclude_pattern():
+    """Test the _match_exclude_pattern method."""
+    # Create a manager
+    manager = LLMSFullManager()
+
+    # Test exact match
+    assert manager._match_exclude_pattern("page1", "page1") is True
+    assert manager._match_exclude_pattern("page1", "page2") is False
+
+    # Test glob-style patterns
+    assert manager._match_exclude_pattern("page1", "page*") is True
+    assert manager._match_exclude_pattern("page_with_include", "page_with_*") is True
+    assert manager._match_exclude_pattern("page1", "*1") is True
+    assert manager._match_exclude_pattern("subdir/page1", "*/page1") is True
+    assert manager._match_exclude_pattern("page1", "subdir/*") is False
+
+
 def test_write_verbose_info_to_file(tmp_path):
     """Test writing verbose info to a file."""
     # Create a manager

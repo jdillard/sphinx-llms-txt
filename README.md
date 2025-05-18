@@ -69,6 +69,12 @@ extensions = [
 - **Default**: `None`
 - **Description**: Optional, but recommended, summary description for `llms.txt`.
 
+### `llms_txt_exclude`
+
+- **Type**: list of strings
+- **Default**: `[]`
+- **Description**: A list of pages to ignore  (e.g., "page1", "page_with_*").
+
 ## Features
 
 - Creates `llms.txt` and `llms-full.txt`
@@ -76,6 +82,7 @@ extensions = [
 - Resolves relative paths in directives like `image` and `figure` to use full paths
   - Ability to add list of custom directives with `llms_txt_directives`
   - Optionally, prepend a base URL using Sphinx's `html_baseurl`
+- Ability to exclude pages
 
 ## License
 
