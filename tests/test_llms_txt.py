@@ -1,10 +1,10 @@
 """Test the sphinx_llms_txt extension."""
 
 from sphinx_llms_txt import (
-    LLMSFullManager,
     DocumentCollector,
     DocumentProcessor,
     FileWriter,
+    LLMSFullManager,
     setup,
 )
 
@@ -166,7 +166,7 @@ def test_process_includes_with_relative_paths(tmp_path):
     """Test that include directives with relative paths are processed correctly."""
     # Create a processor
     config = {"llms_txt_directives": []}
-    
+
     # Set up a more complex directory structure
     docs_dir = tmp_path / "docs"
     docs_dir.mkdir()
