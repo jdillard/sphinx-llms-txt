@@ -73,7 +73,7 @@ extensions = [
 
 - **Type**: list of strings
 - **Default**: `[]`
-- **Description**: A list of pages to ignore  (e.g., "page1", "page_with_*").
+- **Description**: A list of pages to ignore  (e.g., `["page1", "page_with_*"]`).
 
 ## Features
 
