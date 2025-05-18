@@ -501,7 +501,11 @@ class LLMSFullManager:
                 if self.config.get("llms_txt_title"):
                     project_name = self.config.get("llms_txt_title")
                 # Second priority: use project name from Sphinx app if available
-                elif self.app and hasattr(self.app, "config") and hasattr(self.app.config, "project"):
+                elif (
+                    self.app
+                    and hasattr(self.app, "config")
+                    and hasattr(self.app.config, "project")
+                ):
                     project_name = self.app.config.project
                 f.write(f"# {project_name}\n\n")
 

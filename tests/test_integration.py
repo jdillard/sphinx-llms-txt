@@ -147,9 +147,13 @@ def test_title_override(temp_dir, rootdir):
     content = summary_file.read_text()
 
     # Check that the custom title was used
-    assert f"# {custom_title}" in content, f"Custom title '{custom_title}' not found in summary file"
+    assert (
+        f"# {custom_title}" in content
+    ), f"Custom title '{custom_title}' not found in summary file"
     # Ensure the default project name was NOT used
-    assert not f"# Test Project" in content, "Default project name was used instead of custom title"
+    assert (
+        "# Test Project" not in content
+    ), "Default project name was used instead of custom title"
 
     # Custom cleanup to avoid missing_ok issue
     sys.path[:] = app._saved_path
