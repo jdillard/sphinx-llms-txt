@@ -1,25 +1,21 @@
 """Test the path directive processing functionality in sphinx_llms_txt."""
 
-from sphinx_llms_txt import LLMSFullManager
+from sphinx_llms_txt import DocumentProcessor
 
 
 def test_process_path_directives(tmp_path):
     """Test that path directives are processed correctly."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with default directives
-    manager.set_config(
-        {
-            "llms_txt_directives": [],
-            "html_baseurl": "",
-        }
-    )
+    # Create a processor
+    config = {
+        "llms_txt_directives": [],
+        "html_baseurl": "",
+    }
+    processor = DocumentProcessor(config)
 
     # Create source directory structure
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    manager.srcdir = str(src_dir)
+    processor.srcdir = str(src_dir)
 
     # Create _sources directory to mimic Sphinx output
     build_dir = tmp_path / "build"
@@ -48,7 +44,7 @@ def test_process_path_directives(tmp_path):
         f.write(source_content)
 
     # Process the directives
-    processed_content = manager._process_path_directives(source_content, source_file)
+    processed_content = processor._process_path_directives(source_content, source_file)
 
     # With our implementation, the paths should have subdirectory paths added
     expected_content = (
@@ -64,21 +60,17 @@ def test_process_path_directives(tmp_path):
 
 def test_process_path_directives_with_html_baseurl(tmp_path):
     """Test path directives with base_url configured using html_baseurl."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with default directives and base_url using html_baseurl
-    manager.set_config(
-        {
-            "llms_txt_directives": [],
-            "html_baseurl": "https://sphinx-docs.org/",
-        }
-    )
+    # Create a processor
+    config = {
+        "llms_txt_directives": [],
+        "html_baseurl": "https://sphinx-docs.org/",
+    }
+    processor = DocumentProcessor(config)
 
     # Create source directory structure
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    manager.srcdir = str(src_dir)
+    processor.srcdir = str(src_dir)
 
     # Create _sources directory to mimic Sphinx output
     build_dir = tmp_path / "build"
@@ -101,7 +93,7 @@ def test_process_path_directives_with_html_baseurl(tmp_path):
         f.write(source_content)
 
     # Process the directives
-    processed_content = manager._process_path_directives(source_content, source_file)
+    processed_content = processor._process_path_directives(source_content, source_file)
 
     # Expected: The paths should include the base URL with 'subdir' prefix
     expected_content = ".. image:: https://sphinx-docs.org/subdir/images/test.png\n"
@@ -111,21 +103,17 @@ def test_process_path_directives_with_html_baseurl(tmp_path):
 
 def test_process_path_directives_absolute_urls(tmp_path):
     """Test that absolute URLs are not modified."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with default directives
-    manager.set_config(
-        {
-            "llms_txt_directives": [],
-            "html_baseurl": "https://example.com/docs",
-        }
-    )
+    # Create a processor
+    config = {
+        "llms_txt_directives": [],
+        "html_baseurl": "https://example.com/docs",
+    }
+    processor = DocumentProcessor(config)
 
     # Create source directory structure
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    manager.srcdir = str(src_dir)
+    processor.srcdir = str(src_dir)
 
     # Create a source file with absolute URL image directives
     source_content = (
@@ -140,28 +128,24 @@ def test_process_path_directives_absolute_urls(tmp_path):
         f.write(source_content)
 
     # Process the directives (should remain unchanged)
-    processed_content = manager._process_path_directives(source_content, source_file)
+    processed_content = processor._process_path_directives(source_content, source_file)
 
     assert processed_content == source_content
 
 
 def test_process_path_directives_custom_directives(tmp_path):
     """Test that custom directives are processed correctly."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager with custom directives
-    manager.set_config(
-        {
-            "llms_txt_directives": ["drawio-figure", "drawio-image"],
-            "html_baseurl": "",
-        }
-    )
+    # Create a processor
+    config = {
+        "llms_txt_directives": ["drawio-figure", "drawio-image"],
+        "html_baseurl": "",
+    }
+    processor = DocumentProcessor(config)
 
     # Create source directory structure
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    manager.srcdir = str(src_dir)
+    processor.srcdir = str(src_dir)
 
     # Create _sources directory to mimic Sphinx output
     build_dir = tmp_path / "build"
@@ -182,7 +166,7 @@ def test_process_path_directives_custom_directives(tmp_path):
         f.write(source_content)
 
     # Process the directives
-    processed_content = manager._process_path_directives(source_content, source_file)
+    processed_content = processor._process_path_directives(source_content, source_file)
 
     # Expected: The paths should be resolved to full paths
     expected_content = (
@@ -196,23 +180,18 @@ def test_process_path_directives_custom_directives(tmp_path):
 
 def test_process_content_end_to_end(tmp_path):
     """
-    Test the full _process_content method handling both includes and path directives.
+    Test the full process_content method handling both includes and path directives.
     """
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Configure the manager
-    manager.set_config(
-        {
-            "llms_txt_directives": ["drawio-figure"],
-            "html_baseurl": "https://sphinx-docs.org/",
-        }
-    )
+    # Create a processor
+    config = {
+        "llms_txt_directives": ["drawio-figure"],
+        "html_baseurl": "https://sphinx-docs.org/",
+    }
+    processor = DocumentProcessor(config, str(tmp_path / "src"))
 
     # Create source directory structure
     src_dir = tmp_path / "src"
     src_dir.mkdir()
-    manager.srcdir = str(src_dir)
 
     # Create an includes directory
     includes_dir = src_dir / "includes"
@@ -255,7 +234,7 @@ def test_process_content_end_to_end(tmp_path):
         f.write(source_content)
 
     # Process the content
-    processed_content = manager._process_content(source_content, source_file)
+    processed_content = processor.process_content(source_content, source_file)
 
     # Expected: Both includes and path directives should be processed
     expected_content = (
