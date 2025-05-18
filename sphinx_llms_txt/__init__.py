@@ -497,7 +497,11 @@ class LLMSFullManager:
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 project_name = "llms-txt Summary"
-                if self.app and hasattr(self.app.config, "project"):
+                # First priority: use title from config if available
+                if self.config.get("llms_txt_title"):
+                    project_name = self.config.get("llms_txt_title")
+                # Second priority: use project name from Sphinx app if available
+                elif self.app and hasattr(self.app, "config") and hasattr(self.app.config, "project"):
                     project_name = self.app.config.project
                 f.write(f"# {project_name}\n\n")
 
@@ -547,11 +551,12 @@ def build_finished(app: Sphinx, exception):
         config = {
             "llms_txt_file": app.config.llms_txt_file,
             "llms_txt_filename": app.config.llms_txt_filename,
+            "llms_txt_title": app.config.llms_txt_title,
+            "llms_txt_summary": app.config.llms_txt_summary,
             "llms_txt_full_file": app.config.llms_txt_full_file,
             "llms_txt_full_filename": app.config.llms_txt_full_filename,
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
             "llms_txt_directives": app.config.llms_txt_directives,
-            "llms_txt_summary": app.config.llms_txt_summary,
             "html_baseurl": getattr(app.config, "html_baseurl", ""),
         }
         _manager.set_config(config)
@@ -577,6 +582,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_full_filename", "llms-full.txt", "env")
     app.add_config_value("llms_txt_full_max_size", None, "env")
     app.add_config_value("llms_txt_directives", [], "env")
+    app.add_config_value("llms_txt_title", None, "env")
     app.add_config_value("llms_txt_summary", None, "env")
 
     # Connect to Sphinx events
