@@ -36,7 +36,8 @@ extensions = [
 
 - **Type**: integer or `None`
 - **Default**: `None` (no limit)
-- **Description**: Sets a maximum line count for `llms_txt_full_filename`. If exceeded, the file is skipped and a warning is shown, but the build still completes.
+- **Description**: Sets a maximum line count for `llms_txt_full_filename`.
+  If exceeded, the file is skipped and a warning is shown, but the build still completes.
 
 ### `llms_txt_file`
 
@@ -60,7 +61,7 @@ extensions = [
 
 - **Type**: string or `None`
 - **Default**: `None`
-- **Description**: Optional title to use as the heading in `llms.txt`. Overrides the the project name.
+- **Description**: Overrides the Sphinx project name as the heading in `llms.txt`.
 
 ### `llms_txt_summary`
 
