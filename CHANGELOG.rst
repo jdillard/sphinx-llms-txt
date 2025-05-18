@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.2
+-----
+
+- Refactor LLMSFullManager with clearer class structure
+
 0.2.1
 -----
 

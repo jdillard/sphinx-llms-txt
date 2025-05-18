@@ -1,6 +1,12 @@
 """Test the sphinx_llms_txt extension."""
 
-from sphinx_llms_txt import LLMSFullManager, setup
+from sphinx_llms_txt import (
+    DocumentCollector,
+    DocumentProcessor,
+    FileWriter,
+    LLMSFullManager,
+    setup,
+)
 
 
 def test_version():
@@ -35,23 +41,61 @@ def test_setup_returns_valid_dict():
     assert "parallel_write_safe" in result
 
 
+def test_document_collector_initialization():
+    """Test initialization of DocumentCollector."""
+    collector = DocumentCollector()
+    assert collector.page_titles == {}
+    assert collector.config == {}
+    assert collector.master_doc is None
+    assert collector.env is None
+
+
+def test_document_processor_initialization():
+    """Test initialization of DocumentProcessor."""
+    config = {"llms_txt_directives": []}
+    processor = DocumentProcessor(config)
+    assert processor.config == config
+    assert processor.srcdir is None
+
+
+def test_file_writer_initialization():
+    """Test initialization of FileWriter."""
+    config = {"llms_txt_filename": "llms.txt"}
+    writer = FileWriter(config)
+    assert writer.config == config
+    assert writer.outdir is None
+    assert writer.app is None
+
+
 def test_llms_full_manager_initialization():
     """Test initialization of LLMSFullManager."""
     manager = LLMSFullManager()
-    assert manager.page_titles == {}
     assert manager.config == {}
+    assert isinstance(manager.collector, DocumentCollector)
+    assert manager.processor is None
+    assert manager.writer is None
     assert manager.master_doc is None
     assert manager.env is None
 
 
-def test_manager_page_title_update():
+def test_collector_page_title_update():
     """Test updating page titles."""
+    collector = DocumentCollector()
+    collector.update_page_title("doc1", "Title 1")
+    collector.update_page_title("doc2", "Title 2")
+
+    assert collector.page_titles["doc1"] == "Title 1"
+    assert collector.page_titles["doc2"] == "Title 2"
+
+
+def test_manager_page_title_update():
+    """Test updating page titles through manager."""
     manager = LLMSFullManager()
     manager.update_page_title("doc1", "Title 1")
     manager.update_page_title("doc2", "Title 2")
 
-    assert manager.page_titles["doc1"] == "Title 1"
-    assert manager.page_titles["doc2"] == "Title 2"
+    assert manager.collector.page_titles["doc1"] == "Title 1"
+    assert manager.collector.page_titles["doc2"] == "Title 2"
 
 
 def test_set_config():
@@ -64,6 +108,9 @@ def test_set_config():
     }
     manager.set_config(config)
     assert manager.config == config
+    assert manager.collector.config == config
+    assert isinstance(manager.processor, DocumentProcessor)
+    assert isinstance(manager.writer, FileWriter)
 
 
 def test_set_master_doc():
@@ -71,22 +118,24 @@ def test_set_master_doc():
     manager = LLMSFullManager()
     manager.set_master_doc("index")
     assert manager.master_doc == "index"
+    assert manager.collector.master_doc == "index"
 
 
 def test_empty_page_order():
     """Test get_page_order returns empty list when env or master_doc not set."""
-    manager = LLMSFullManager()
-    assert manager.get_page_order() == []
+    collector = DocumentCollector()
+    assert collector.get_page_order() == []
 
     # Set only master_doc, but not env
-    manager.set_master_doc("index")
-    assert manager.get_page_order() == []
+    collector.set_master_doc("index")
+    assert collector.get_page_order() == []
 
 
 def test_process_includes(tmp_path):
     """Test that include directives are processed correctly."""
-    # Create a manager
-    manager = LLMSFullManager()
+    # Create a processor
+    config = {"llms_txt_directives": []}
+    processor = DocumentProcessor(config)
 
     # Create a test file with an include directive
     include_content = "This is included content.\nWith multiple lines."
@@ -103,7 +152,7 @@ def test_process_includes(tmp_path):
         f.write(source_content)
 
     # Process the include directive
-    processed_content = manager._process_includes(source_content, source_file)
+    processed_content = processor._process_includes(source_content, source_file)
 
     # Check that the include directive was replaced with the content
     expected_content = (
@@ -115,8 +164,8 @@ def test_process_includes(tmp_path):
 
 def test_process_includes_with_relative_paths(tmp_path):
     """Test that include directives with relative paths are processed correctly."""
-    # Create a manager
-    manager = LLMSFullManager()
+    # Create a processor
+    config = {"llms_txt_directives": []}
 
     # Set up a more complex directory structure
     docs_dir = tmp_path / "docs"
@@ -134,8 +183,8 @@ def test_process_includes_with_relative_paths(tmp_path):
     includes_dir = source_dir / "includes"
     includes_dir.mkdir()
 
-    # Set the srcdir on the manager
-    manager.srcdir = str(source_dir)
+    # Create a processor with srcdir
+    processor = DocumentProcessor(config, str(source_dir))
 
     # Create the included file in the includes directory
     include_content = "This is included content from another directory."
@@ -167,7 +216,7 @@ def test_process_includes_with_relative_paths(tmp_path):
         f.write(source_content)
 
     # Process the include directive from the _sources file
-    processed_content = manager._process_includes(source_content, sources_file)
+    processed_content = processor._process_includes(source_content, sources_file)
 
     # Check that the include directive was replaced with the content
     expected_content = (
@@ -179,50 +228,46 @@ def test_process_includes_with_relative_paths(tmp_path):
 
 def test_match_exclude_pattern():
     """Test the _match_exclude_pattern method."""
-    # Create a manager
-    manager = LLMSFullManager()
+    # Create a collector
+    collector = DocumentCollector()
 
     # Test exact match
-    assert manager._match_exclude_pattern("page1", "page1") is True
-    assert manager._match_exclude_pattern("page1", "page2") is False
+    assert collector._match_exclude_pattern("page1", "page1") is True
+    assert collector._match_exclude_pattern("page1", "page2") is False
 
     # Test glob-style patterns
-    assert manager._match_exclude_pattern("page1", "page*") is True
-    assert manager._match_exclude_pattern("page_with_include", "page_with_*") is True
-    assert manager._match_exclude_pattern("page1", "*1") is True
-    assert manager._match_exclude_pattern("subdir/page1", "*/page1") is True
-    assert manager._match_exclude_pattern("page1", "subdir/*") is False
+    assert collector._match_exclude_pattern("page1", "page*") is True
+    assert collector._match_exclude_pattern("page_with_include", "page_with_*") is True
+    assert collector._match_exclude_pattern("page1", "*1") is True
+    assert collector._match_exclude_pattern("subdir/page1", "*/page1") is True
+    assert collector._match_exclude_pattern("page1", "subdir/*") is False
 
 
 def test_write_verbose_info_to_file(tmp_path):
     """Test writing verbose info to a file."""
-    # Create a manager
-    manager = LLMSFullManager()
-
-    # Set up a build directory
+    # Create a build directory
     build_dir = tmp_path / "build"
     build_dir.mkdir()
 
-    # Set the outdir on the manager
-    manager.outdir = str(build_dir)
-
-    # Set configuration with verbose_file enabled
+    # Create writer with configuration and outdir
     config = {
         "llms_txt_file": True,
         "llms_txt_full_max_size": 1000,
         "llms_txt_filename": "llms.txt",
     }
-    manager.set_config(config)
+    writer = FileWriter(config, str(build_dir))
 
-    # Add some page titles
-    manager.update_page_title("index", "Home Page")
-    manager.update_page_title("about", "About Us")
+    # Create page titles
+    page_titles = {
+        "index": "Home Page",
+        "about": "About Us",
+    }
 
     # Create a page order
     page_order = ["index", "about"]
 
     # Call the method to write verbose info to file
-    manager._write_verbose_info_to_file(page_order, 500)
+    writer.write_verbose_info_to_file(page_order, page_titles)
 
     # Check that the file was created
     verbose_file = build_dir / "llms.txt"
