@@ -28,6 +28,8 @@ Add the extension to your Sphinx configuration (``conf.py``):
 
 Once added, the extension will automatically generate the LLMs.txt files during the build process.
 
+See :doc:`advanced-configuration` for more information about how to use **sphinx-llms-txt**.
+
 How It Works
 -----------
 
