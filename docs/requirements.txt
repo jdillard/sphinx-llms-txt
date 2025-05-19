@@ -1,0 +1,6 @@
+furo
+esbonio
+sphinx-contributors
+sphinx
+-e ../../sphinx-llms-txt
+sphinxext-opengraph
