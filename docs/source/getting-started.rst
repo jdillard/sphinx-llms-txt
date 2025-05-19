@@ -28,17 +28,20 @@ Add the extension to your Sphinx configuration (``conf.py``):
 
 Once added, the extension will automatically generate the LLMs.txt files during the build process.
 
-Features
---------
+How It Works
+-----------
 
-Sphinx LLMs.txt provides the following features:
+During the Sphinx build process:
 
-- Creates ``llms.txt`` and ``llms-full.txt``
-- Automatically add content from ``include`` directives
-- Resolves relative paths in directives like ``image`` and ``figure`` to use full paths
-   - Ability to add list of custom directives with ``llms_txt_directives``
-   - Optionally, prepend a base URL using Sphinx's ``html_baseurl``
-- Ability to exclude pages
+1. **Content Collection**: Scans all of your documentation's ``_source`` pages and collects their content
+2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
+3. **Path Resolution**: Transforms relative paths in directives like ``image`` and ``figure`` to full paths
+4. **Output Generation**: Creates two files:
+
+   - ``llms.txt``: A concise summary of your documentation, in Markdown
+   - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText
+
+5. **Content Filtering**: Allows you to exclude specific pages from the generated files
 
 
 .. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt
