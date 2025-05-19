@@ -7,22 +7,18 @@
 
 # -- Path setup --------------------------------------------------------------
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-import sys
-import os
-import subprocess
 import re
-
+import subprocess
 
 # -- Project information -----------------------------------------------------
 
 project = "Sphinx llms.txt Generator"
 copyright = "Jared Dillard"
 author = "Jared Dillard"
-llms_txt_summary = "A Sphinx extension that generates a summary llms.txt file, written in Markdown, and a single combined documentation llms-full.txt file, written in reStructuredText."
+llms_txt_summary = """
+A Sphinx extension that generates a summary llms.txt file,written in Markdown,
+and a single combined documentation llms-full.txt file, written in reStructuredText.
+"""
 
 # check if the current commit is tagged as a release (vX.Y.Z)
 try:
