@@ -88,6 +88,9 @@ class FileWriter:
                 if description:
                     # Trim leading and trailing whitespace
                     description = description.strip()
+                    # Replace newlines with newline + blockquote marker to maintain
+                    # blockquote formatting
+                    description = description.replace("\n", "\n> ")
                     f.write(f"> {description}\n\n")
 
                 f.write("## Docs\n\n")
