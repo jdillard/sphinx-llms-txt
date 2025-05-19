@@ -38,7 +38,7 @@ If you only want one of the files, you can disable generation of the other:
 
    # Disable summary file
    llms_txt_file = False
-   
+
    # Disable full documentation file
    llms_txt_full_file = False
 
@@ -152,17 +152,17 @@ Here's a complete example showing multiple configuration options:
    llms_txt_filename = "ai-summary.txt"
    llms_txt_full_filename = "ai-full-docs.txt"
    llms_txt_full_max_size = 50000
-   
+
    # Content customization
    llms_txt_title = "Project Documentation for AI Assistants"
    llms_txt_summary = """
    This is a comprehensive documentation set for our project.
    It includes API references, usage examples, and tutorials.
    """
-   
+
    # Path handling
    html_baseurl = "https://docs.example.com/"
    llms_txt_directives = ["custom-image", "custom-include"]
-   
+
    # Content filtering
    llms_txt_exclude = ["search", "genindex", "404", "private_*"]
