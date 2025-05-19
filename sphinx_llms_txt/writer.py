@@ -86,6 +86,8 @@ class FileWriter:
                 # Add description if available
                 description = self.config.get("llms_txt_summary", "")
                 if description:
+                    # Trim leading and trailing whitespace
+                    description = description.strip()
                     f.write(f"> {description}\n\n")
 
                 f.write("## Docs\n\n")
