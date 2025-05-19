@@ -334,3 +334,44 @@ def test_write_verbose_info_with_baseurl(tmp_path):
 
     assert "- [Home Page](https://example.org/index.html)" in content
     assert "- [About Us](https://example.org/about.html)" in content
+
+
+def test_remove_directives():
+    """Test removing directives from content."""
+    # Create a processor with remove_directives enabled
+    config = {"llms_txt_rm_directives": True}
+    processor = DocumentProcessor(config)
+
+    # Test content with various directives
+    content = """This is a test document.
+
+.. image:: /path/to/image.jpg
+   :alt: An example image
+   :width: 100%
+
+This is a paragraph after the image.
+
+.. note::
+   This is a note.
+
+.. code-block:: python
+
+   def hello_world():
+       print("Hello, world!")
+
+Final paragraph."""
+
+    processed_content = processor._remove_directives(content)
+
+    # Check that directives are removed
+    assert ".. image::" not in processed_content
+    assert ".. note::" not in processed_content
+    assert ".. code-block::" not in processed_content
+
+    # Check that regular content is preserved
+    assert "This is a test document." in processed_content
+    assert "This is a paragraph after the image." in processed_content
+    assert "Final paragraph." in processed_content
+
+    # Check that there are no excessive blank lines
+    assert "\n\n\n" not in processed_content

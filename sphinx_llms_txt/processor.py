@@ -50,7 +50,32 @@ class DocumentProcessor:
         # Then process path directives (image, figure, etc.)
         content = self._process_path_directives(content, source_path)
 
+        # Remove directives if configured to do so
+        if self.config.get("llms_txt_rm_directives", False):
+            content = self._remove_directives(content)
+
         return content
+
+    def _remove_directives(self, content: str) -> str:
+        """Remove directives from content.
+
+        Args:
+            content: The source content from which to remove directives
+
+        Returns:
+            Content with all directives removed
+        """
+        # Match any directive pattern (starting with .. followed by ::)
+        directive_pattern = re.compile(r'^\s*\.\.\s+[\w\-]+::.*?$(?:\n\s+.*?$)*',
+                                      re.MULTILINE | re.DOTALL)
+
+        # Replace all directives with an empty string
+        processed_content = directive_pattern.sub('', content)
+
+        # Clean up any consecutive blank lines that might result from directive removal
+        processed_content = re.sub(r'\n{3,}', '\n\n', processed_content)
+
+        return processed_content
 
     def _extract_relative_document_path(
         self, source_path: Path
