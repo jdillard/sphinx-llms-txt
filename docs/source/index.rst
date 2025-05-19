@@ -25,8 +25,15 @@ Sphinx LLMs.txt provides the following features:
    - Optionally, prepend a base URL using Sphinx's ``html_baseurl``
 - Ability to exclude pages
 
+Example
+-------
+
+You can see this Sphinx projects `llms.txt`_ and `llms-full.txt`_ files as a simple example.
+
 
 .. _Sphinx: http://sphinx-doc.org/
+.. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt
+.. _llms-full.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms-full.txt
 
 .. |PyPI version| image:: https://img.shields.io/pypi/v/sphinx-llms-txt.svg
    :target: https://pypi.python.org/pypi/sphinx-llms-txt
