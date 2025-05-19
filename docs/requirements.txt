@@ -2,5 +2,5 @@ furo
 esbonio
 sphinx-contributors
 sphinx
-sphinx-llms-txt
+-e ../../sphinx-llms-txt
 sphinxext-opengraph
