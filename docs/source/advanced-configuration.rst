@@ -146,7 +146,7 @@ Integration Examples
 Complete Configuration Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here's a complete example showing multiple configuration options:
+Here's a complete example showing multiple :ref:`configuration-values`:
 
 .. code-block:: python
 
