@@ -12,7 +12,7 @@ import subprocess
 
 # -- Project information -----------------------------------------------------
 
-project = "Sphinx llms.txt Generator"
+project = "sphinx-llms-txt"
 copyright = "Jared Dillard"
 author = "Jared Dillard"
 llms_txt_summary = """
