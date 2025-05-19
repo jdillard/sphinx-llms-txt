@@ -35,8 +35,8 @@ During the Sphinx build process:
 
 1. **Content Collection**: Scans all of your documentation's ``_source`` pages and collects their content
 2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
-3. **Path Resolution**: Transforms relative paths in directives like ``image`` and ``figure`` to full paths
-4. **Output Generation**: Creates two files:
+3. **Path Resolution**: Transforms relative paths in directives to full paths
+4. **Output Generation**: Creates two optional files:
 
    - ``llms.txt``: A concise summary of your documentation, in Markdown
    - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText

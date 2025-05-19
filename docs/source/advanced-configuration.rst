@@ -75,7 +75,8 @@ By default, the project name from Sphinx is used as the title in ``llms.txt``. Y
 Handling Large Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-For very large documentation sets, generating the full documentation file might exceed reasonable size limits. You can set a maximum line count:
+For very large documentation sets, generating the full documentation file might exceed reasonable size limits.
+You can set a maximum line count:
 
 .. code-block:: python
 
@@ -95,7 +96,8 @@ Custom Directive Handling
 Path Resolution
 ~~~~~~~~~~~~~~~
 
-The extension resolves paths in common directives like ``image`` and ``figure``. You can add custom directives to this list:
+The extension resolves paths in the common directives ``[ 'image', 'figure']`` by default.
+You can add custom directives to this list:
 
 .. code-block:: python
 
