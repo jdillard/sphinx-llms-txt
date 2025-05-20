@@ -104,14 +104,7 @@ class LLMSFullManager:
             )
             return
 
-        # Collect all available source files
-        txt_files = {}
-        for f in sources_dir.glob("**/*.txt"):
-            logger.debug(f"sphinx-llms-txt: Found source file: {f.stem} at {f}")
-            txt_files[f.stem] = f
-
         # Log discovered files and page order
-        logger.debug(f"sphinx-llms-txt: Found {len(txt_files)} source files")
         logger.debug(f"sphinx-llms-txt: Page order (after exclusion): {page_order}")
 
         # Log exclusion patterns
@@ -119,33 +112,31 @@ class LLMSFullManager:
         if exclude_patterns:
             logger.debug(f"sphinx-llms-txt: Exclusion patterns: {exclude_patterns}")
 
-        # Create a mapping from docnames to actual file names
+        # Create a mapping from docnames to source files
         docname_to_file = {}
 
-        # Try exact matches first
+        # Process each docname in the page order
         for docname in page_order:
             # Skip excluded pages
-            if any(
+            if exclude_patterns and any(
                 self.collector._match_exclude_pattern(docname, pattern)
                 for pattern in exclude_patterns
             ):
                 continue
 
-            if docname in txt_files:
-                docname_to_file[docname] = txt_files[docname]
+            # Construct expected source file path directly from docname
+            source_file = sources_dir / f"{docname}.rst.txt"
+
+            if source_file.exists():
+                docname_to_file[docname] = source_file
+                logger.debug(
+                    f"sphinx-llms-txt: Found source file for {docname} at {source_file}"
+                )
             else:
-                # Try with .rst extension
-                if f"{docname}.rst" in txt_files:
-                    docname_to_file[docname] = txt_files[f"{docname}.rst"]
-                # Try with .txt extension
-                elif f"{docname}.txt" in txt_files:
-                    docname_to_file[docname] = txt_files[f"{docname}.txt"]
-                # Try with underscores instead of hyphens
-                elif docname.replace("-", "_") in txt_files:
-                    docname_to_file[docname] = txt_files[docname.replace("-", "_")]
-                # Try with hyphens instead of underscores
-                elif docname.replace("_", "-") in txt_files:
-                    docname_to_file[docname] = txt_files[docname.replace("_", "-")]
+                logger.warning(
+                    f"sphinx-llm-txt: Source file not found for: {docname}. Expected"
+                    f" at {source_file}"
+                )
 
         # Generate content
         content_parts = []
@@ -190,65 +181,56 @@ class LLMSFullManager:
                     added_files.add(file_path.stem)
                     total_line_count += line_count
             else:
-                logger.warning(f"sphinx-llm-txt: Source file not found for: {docname}")
+                logger.warning(
+                    f"sphinx-llm-txt: Source file not found for: {docname}. Check that"
+                    f" the file exists at _sources/{docname}.rst.txt"
+                )
 
-        # Add any remaining files (in alphabetical order) if not aborted
+        # Add any remaining files (in alphabetical order) that aren't in the page order
         if not abort_due_to_max_lines:
-            # Apply the same exclusion filter to remaining files
-            exclude_patterns = self.config.get("llms_txt_exclude")
+            # Get all .rst.txt files in the _sources directory
+            all_source_files = list(sources_dir.glob("**/*.rst.txt"))
+            processed_paths = set(file.resolve() for file in docname_to_file.values())
 
-            # Create a set of files to exclude based on their basename
-            excluded_files = set()
-            for pattern in exclude_patterns:
-                if "*" not in pattern and "?" not in pattern:
-                    # For exact patterns, add variants
-                    excluded_files.add(pattern)
-                    excluded_files.add(f"{pattern}.rst")
-                    excluded_files.add(f"{pattern}.txt")
-                    excluded_files.add(pattern.replace("-", "_"))
-                    excluded_files.add(pattern.replace("_", "-"))
+            # Find files that haven't been processed yet
+            remaining_source_files = [
+                f for f in all_source_files if f.resolve() not in processed_paths
+            ]
 
-            # Filter remaining files
-            remaining_files = sorted(
-                [
-                    name
-                    for name in txt_files
-                    if name not in added_files
-                    and name not in excluded_files
-                    and not any(
-                        self.collector._match_exclude_pattern(name, pattern)
-                        for pattern in exclude_patterns
-                    )
-                ]
-            )
-            if remaining_files:
-                logger.info(f"Adding remaining files: {remaining_files}")
-            for file_stem in remaining_files:
-                file_path = txt_files[file_stem]
-                content, line_count = self._read_source_file(file_path, file_stem)
+            # Sort the remaining files for consistent ordering
+            remaining_source_files.sort()
+
+            if remaining_source_files:
+                logger.info(
+                    f"Found {len(remaining_source_files)} additional files not in"
+                    f" toctree"
+                )
+
+            for file_path in remaining_source_files:
+                # Extract docname from path by removing the .rst.txt extension
+                rel_path = str(file_path.relative_to(sources_dir))
+                if rel_path.endswith(".rst.txt"):
+                    docname = rel_path[:-8]  # Remove .rst.txt extension
+                else:
+                    continue
+
+                # Skip excluded docnames
+                if exclude_patterns and any(
+                    self.collector._match_exclude_pattern(docname, pattern)
+                    for pattern in exclude_patterns
+                ):
+                    logger.debug(f"sphinx-llms-txt: Skipping excluded file: {docname}")
+                    continue
+
+                # Read and process the file
+                content, line_count = self._read_source_file(file_path, docname)
 
                 # Check if adding this file would exceed the maximum line count
                 if max_lines is not None and total_line_count + line_count > max_lines:
                     break
 
-                # Double-check that this file should be included
-                should_include = True
-                file_stem = file_path.stem
-                exclude_patterns = self.config.get("llms_txt_exclude")
-
-                if exclude_patterns:
-                    # Check stem against exclusion patterns
-                    if any(
-                        self.collector._match_exclude_pattern(file_stem, pattern)
-                        for pattern in exclude_patterns
-                    ):
-                        logger.debug(
-                            "sphinx-llms-txt: Final exclusion check removed remaining"
-                            f" file: {file_stem}"
-                        )
-                        should_include = False
-
-                if content and should_include:
+                if content:
+                    logger.debug(f"sphinx-llms-txt: Adding remaining file: {docname}")
                     content_parts.append(content)
                     total_line_count += line_count
 
