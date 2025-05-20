@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.2.3
+-----
+
+- Remove ``get_and_resolve_toctree`` method
+  `#19 <https://github.com/jdillard/sphinx-llms-txt/pull/19>`_
+- Simplify ``_sources`` lookup
+  `#18 <https://github.com/jdillard/sphinx-llms-txt/pull/18>`_
+- Add sphinx docs
+  `#16 <https://github.com/jdillard/sphinx-llms-txt/pull/16>`_
+
 0.2.2
 -----
 
