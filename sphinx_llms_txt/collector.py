@@ -65,21 +65,34 @@ class DocumentCollector:
                 ):
                     for child_docname in self.env.toctree_includes[docname]:
                         collect_from_toctree(child_docname)
-                else:
-                    # Fallback: try to resolve and parse the toctree
-                    toctree = self.env.get_and_resolve_toctree(docname, None)
-                    if toctree:
-                        from docutils import nodes
+                # Try to use dependencies to find related documents
+                elif (
+                    hasattr(self.env, "dependencies")
+                    and docname in self.env.dependencies
+                ):
+                    # Extract the dependent documents from the dependencies dict
+                    for child_docname in self.env.dependencies[docname]:
+                        # Only add documents actually in the document set
+                        if (
+                            hasattr(self.env, "all_docs")
+                            and child_docname in self.env.all_docs
+                        ):
+                            collect_from_toctree(child_docname)
+                # Fallback to titles or other available references
+                elif hasattr(self.env, "titles") and hasattr(self.env, "all_docs"):
+                    # Get all document names
+                    all_docnames = list(self.env.all_docs.keys())
 
-                        for node in list(toctree.findall(nodes.reference)):
-                            if "refuri" in node.attributes:
-                                refuri = node.attributes["refuri"]
-                                if refuri and refuri.endswith(".html"):
-                                    child_docname = refuri[:-5]  # Remove .html
-                                    if (
-                                        child_docname != docname
-                                    ):  # Avoid circular references
-                                        collect_from_toctree(child_docname)
+                    # Look for documents that might be related (have similar paths)
+                    current_prefix = "/".join(docname.split("/")[:-1])
+                    if current_prefix:
+                        for child_docname in all_docnames:
+                            # Documents in the same directory might be related
+                            if (
+                                child_docname.startswith(current_prefix)
+                                and child_docname != docname
+                            ):
+                                collect_from_toctree(child_docname)
             except Exception as e:
                 logger.debug(f"Could not get toctree for {docname}: {e}")
 
