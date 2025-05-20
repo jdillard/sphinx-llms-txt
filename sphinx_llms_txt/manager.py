@@ -129,9 +129,6 @@ class LLMSFullManager:
 
             if source_file.exists():
                 docname_to_file[docname] = source_file
-                logger.debug(
-                    f"sphinx-llms-txt: Found source file for {docname} at {source_file}"
-                )
             else:
                 logger.warning(
                     f"sphinx-llm-txt: Source file not found for: {docname}. Expected"
