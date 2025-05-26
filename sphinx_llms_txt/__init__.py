@@ -58,6 +58,7 @@ def build_finished(app: Sphinx, exception):
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
             "llms_txt_directives": app.config.llms_txt_directives,
             "llms_txt_exclude": app.config.llms_txt_exclude,
+            "llms_txt_rm_directives": app.config.llms_txt_rm_directives,
             "html_baseurl": getattr(app.config, "html_baseurl", ""),
         }
         _manager.set_config(config)
@@ -86,6 +87,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_title", None, "env")
     app.add_config_value("llms_txt_summary", None, "env")
     app.add_config_value("llms_txt_exclude", [], "env")
+    app.add_config_value("llms_txt_rm_directives", False, "env")
 
     # Connect to Sphinx events
     app.connect("doctree-resolved", doctree_resolved)
