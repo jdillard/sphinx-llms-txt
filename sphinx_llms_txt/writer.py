@@ -42,7 +42,7 @@ class FileWriter:
             )
             return True
         except Exception as e:
-            logger.error(f"sphinx-llm-txt: Error writing combined sources file: {e}")
+            logger.error(f"sphinx-llms-txt: Error writing combined sources file: {e}")
             return False
 
     def write_verbose_info_to_file(

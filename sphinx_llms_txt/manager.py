@@ -119,7 +119,10 @@ class LLMSFullManager:
         source_link_suffix = (
             self.app.config.html_sourcelink_suffix if self.app else ".txt"
         )
-        if not source_link_suffix.startswith("."):
+        # Handle empty string case specially
+        if source_link_suffix == "":
+            source_link_suffix = ""  # Keep it empty
+        elif not source_link_suffix.startswith("."):
             source_link_suffix = "." + source_link_suffix
 
         # Get the source file suffixes from Sphinx config
@@ -148,7 +151,7 @@ class LLMSFullManager:
                 docname_to_file[docname] = source_file
             else:
                 logger.warning(
-                    f"sphinx-llm-txt: Source file not found for: {docname}. Tried:"
+                    f"sphinx-llms-txt: Source file not found for: {docname}. Tried:"
                     f" {[f'{docname}{s}{source_link_suffix}' for s in source_suffixes]}"
                 )
 
@@ -196,7 +199,7 @@ class LLMSFullManager:
                     total_line_count += line_count
             else:
                 logger.warning(
-                    f"sphinx-llm-txt: Source file not found for: {docname}. Check that"
+                    f"sphinx-llms-txt: Source file not found for: {docname}. Check that"
                     f" file exists at _sources/{docname}[suffix]{source_link_suffix}"
                 )
 
@@ -265,7 +268,7 @@ class LLMSFullManager:
             max_lines is not None and total_line_count > max_lines
         ):
             logger.warning(
-                f"sphinx-llm-txt: Max line limit ({max_lines}) exceeded:"
+                f"sphinx-llms-txt: Max line limit ({max_lines}) exceeded:"
                 f" {total_line_count} > {max_lines}. "
                 f"Not creating llms-full.txt file."
             )
@@ -332,7 +335,7 @@ class LLMSFullManager:
             return content_str, line_count + 1
 
         except Exception as e:
-            logger.error(f"sphinx-llm-txt: Error reading source file {file_path}: {e}")
+            logger.error(f"sphinx-llms-txt: Error reading source file {file_path}: {e}")
             return "", 0
 
     def _get_source_suffixes(self):
