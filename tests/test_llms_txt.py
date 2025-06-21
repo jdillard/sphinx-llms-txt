@@ -402,8 +402,9 @@ def test_get_source_suffixes_no_app():
 
 def test_html_sourcelink_suffix_default():
     """Test html_sourcelink_suffix defaults to .txt when no app is set."""
-    from sphinx_llms_txt.manager import LLMSFullManager
     import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
 
     manager = LLMSFullManager()
     manager.set_config(
@@ -452,8 +453,9 @@ def test_html_sourcelink_suffix_default():
 
 def test_html_sourcelink_suffix_custom():
     """Test html_sourcelink_suffix uses custom value from Sphinx config."""
-    from sphinx_llms_txt.manager import LLMSFullManager
     import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
 
     # Mock Sphinx app with custom html_sourcelink_suffix
     class MockApp:
@@ -511,8 +513,9 @@ def test_html_sourcelink_suffix_custom():
 
 def test_html_sourcelink_suffix_with_dot():
     """Test html_sourcelink_suffix adds dot if missing."""
-    from sphinx_llms_txt.manager import LLMSFullManager
     import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
 
     # Mock Sphinx app with html_sourcelink_suffix without leading dot
     class MockApp:
@@ -570,8 +573,9 @@ def test_html_sourcelink_suffix_with_dot():
 
 def test_mixed_source_file_formats():
     """Test handling of mixed source file formats (.rst, .md, .txt)."""
-    from sphinx_llms_txt.manager import LLMSFullManager
     import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
 
     # Mock Sphinx app with multiple source suffixes
     class MockApp:
@@ -645,8 +649,9 @@ def test_mixed_source_file_formats():
 
 def test_source_suffix_detection_priority():
     """Test source suffix detection tries formats in correct order for docnames."""
-    from sphinx_llms_txt.manager import LLMSFullManager
     import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
 
     # Mock Sphinx app with ordered source suffixes
     class MockApp:
