@@ -116,9 +116,11 @@ class LLMSFullManager:
         docname_to_file = {}
 
         # Get the source link suffix from Sphinx config (defaults to '.txt')
-        source_link_suffix = self.app.config.html_sourcelink_suffix if self.app else '.txt'
-        if not source_link_suffix.startswith('.'):
-            source_link_suffix = '.' + source_link_suffix
+        source_link_suffix = (
+            self.app.config.html_sourcelink_suffix if self.app else ".txt"
+        )
+        if not source_link_suffix.startswith("."):
+            source_link_suffix = "." + source_link_suffix
 
         # Get the source file suffixes from Sphinx config
         source_suffixes = self._get_source_suffixes()
@@ -135,7 +137,9 @@ class LLMSFullManager:
             # Try to find the source file with any of the valid source suffixes
             source_file = None
             for src_suffix in source_suffixes:
-                candidate_file = sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                candidate_file = (
+                    sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                )
                 if candidate_file.exists():
                     source_file = candidate_file
                     break
@@ -193,7 +197,7 @@ class LLMSFullManager:
             else:
                 logger.warning(
                     f"sphinx-llm-txt: Source file not found for: {docname}. Check that"
-                    f" the file exists at _sources/{docname}[suffix]{source_link_suffix}"
+                    f" file exists at _sources/{docname}[suffix]{source_link_suffix}"
                 )
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
@@ -229,7 +233,7 @@ class LLMSFullManager:
                 for src_suffix in source_suffixes:
                     combined_suffix = f"{src_suffix}{source_link_suffix}"
                     if rel_path.endswith(combined_suffix):
-                        docname = rel_path[:-len(combined_suffix)]  # Remove suffix
+                        docname = rel_path[: -len(combined_suffix)]  # Remove suffix
                         break
 
                 if docname is None:
@@ -338,7 +342,7 @@ class LLMSFullManager:
             list: List of source file suffixes (e.g., ['.rst', '.md', '.txt'])
         """
         if not self.app:
-            return ['.rst']  # Default fallback
+            return [".rst"]  # Default fallback
 
         source_suffix = self.app.config.source_suffix
 
