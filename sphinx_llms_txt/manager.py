@@ -115,6 +115,11 @@ class LLMSFullManager:
         # Create a mapping from docnames to source files
         docname_to_file = {}
 
+        # Get the source file suffix from Sphinx config (defaults to '.txt')
+        source_suffix = self.app.config.html_sourcelink_suffix if self.app else '.txt'
+        if not source_suffix.startswith('.'):
+            source_suffix = '.' + source_suffix
+
         # Process each docname in the page order
         for docname in page_order:
             # Skip excluded pages
@@ -125,7 +130,7 @@ class LLMSFullManager:
                 continue
 
             # Construct expected source file path directly from docname
-            source_file = sources_dir / f"{docname}.rst.txt"
+            source_file = sources_dir / f"{docname}.rst{source_suffix}"
 
             if source_file.exists():
                 docname_to_file[docname] = source_file
@@ -180,13 +185,14 @@ class LLMSFullManager:
             else:
                 logger.warning(
                     f"sphinx-llm-txt: Source file not found for: {docname}. Check that"
-                    f" the file exists at _sources/{docname}.rst.txt"
+                    f" the file exists at _sources/{docname}.rst{source_suffix}"
                 )
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
         if not abort_due_to_max_lines:
-            # Get all .rst.txt files in the _sources directory
-            all_source_files = list(sources_dir.glob("**/*.rst.txt"))
+            # Get all source files in the _sources directory using configured suffix
+            glob_pattern = f"**/*{source_suffix}"
+            all_source_files = list(sources_dir.glob(glob_pattern))
             processed_paths = set(file.resolve() for file in docname_to_file.values())
 
             # Find files that haven't been processed yet
@@ -204,10 +210,11 @@ class LLMSFullManager:
                 )
 
             for file_path in remaining_source_files:
-                # Extract docname from path by removing the .rst.txt extension
+                # Extract docname from path by removing the source suffix
                 rel_path = str(file_path.relative_to(sources_dir))
-                if rel_path.endswith(".rst.txt"):
-                    docname = rel_path[:-8]  # Remove .rst.txt extension
+                rst_suffix = f".rst{source_suffix}"
+                if rel_path.endswith(rst_suffix):
+                    docname = rel_path[:-len(rst_suffix)]  # Remove suffix
                 else:
                     continue
 
