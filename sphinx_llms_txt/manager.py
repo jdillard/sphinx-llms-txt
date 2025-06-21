@@ -115,10 +115,13 @@ class LLMSFullManager:
         # Create a mapping from docnames to source files
         docname_to_file = {}
 
-        # Get the source file suffix from Sphinx config (defaults to '.txt')
-        source_suffix = self.app.config.html_sourcelink_suffix if self.app else '.txt'
-        if not source_suffix.startswith('.'):
-            source_suffix = '.' + source_suffix
+        # Get the source link suffix from Sphinx config (defaults to '.txt')
+        source_link_suffix = self.app.config.html_sourcelink_suffix if self.app else '.txt'
+        if not source_link_suffix.startswith('.'):
+            source_link_suffix = '.' + source_link_suffix
+
+        # Get the source file suffixes from Sphinx config
+        source_suffixes = self._get_source_suffixes()
 
         # Process each docname in the page order
         for docname in page_order:
@@ -129,15 +132,20 @@ class LLMSFullManager:
             ):
                 continue
 
-            # Construct expected source file path directly from docname
-            source_file = sources_dir / f"{docname}.rst{source_suffix}"
+            # Try to find the source file with any of the valid source suffixes
+            source_file = None
+            for src_suffix in source_suffixes:
+                candidate_file = sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                if candidate_file.exists():
+                    source_file = candidate_file
+                    break
 
-            if source_file.exists():
+            if source_file:
                 docname_to_file[docname] = source_file
             else:
                 logger.warning(
-                    f"sphinx-llm-txt: Source file not found for: {docname}. Expected"
-                    f" at {source_file}"
+                    f"sphinx-llm-txt: Source file not found for: {docname}. Tried:"
+                    f" {[f'{docname}{s}{source_link_suffix}' for s in source_suffixes]}"
                 )
 
         # Generate content
@@ -185,14 +193,17 @@ class LLMSFullManager:
             else:
                 logger.warning(
                     f"sphinx-llm-txt: Source file not found for: {docname}. Check that"
-                    f" the file exists at _sources/{docname}.rst{source_suffix}"
+                    f" the file exists at _sources/{docname}[suffix]{source_link_suffix}"
                 )
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
         if not abort_due_to_max_lines:
-            # Get all source files in the _sources directory using configured suffix
-            glob_pattern = f"**/*{source_suffix}"
-            all_source_files = list(sources_dir.glob(glob_pattern))
+            # Get all source files in the _sources directory using configured suffixes
+            all_source_files = []
+            for src_suffix in source_suffixes:
+                glob_pattern = f"**/*{src_suffix}{source_link_suffix}"
+                all_source_files.extend(sources_dir.glob(glob_pattern))
+
             processed_paths = set(file.resolve() for file in docname_to_file.values())
 
             # Find files that haven't been processed yet
@@ -210,12 +221,18 @@ class LLMSFullManager:
                 )
 
             for file_path in remaining_source_files:
-                # Extract docname from path by removing the source suffix
+                # Extract docname from path by removing the source and link suffixes
                 rel_path = str(file_path.relative_to(sources_dir))
-                rst_suffix = f".rst{source_suffix}"
-                if rel_path.endswith(rst_suffix):
-                    docname = rel_path[:-len(rst_suffix)]  # Remove suffix
-                else:
+                docname = None
+
+                # Try each source suffix to find which one this file uses
+                for src_suffix in source_suffixes:
+                    combined_suffix = f"{src_suffix}{source_link_suffix}"
+                    if rel_path.endswith(combined_suffix):
+                        docname = rel_path[:-len(combined_suffix)]  # Remove suffix
+                        break
+
+                if docname is None:
                     continue
 
                 # Skip excluded docnames
@@ -313,3 +330,21 @@ class LLMSFullManager:
         except Exception as e:
             logger.error(f"sphinx-llm-txt: Error reading source file {file_path}: {e}")
             return "", 0
+
+    def _get_source_suffixes(self):
+        """Get all valid source file suffixes from Sphinx configuration.
+
+        Returns:
+            list: List of source file suffixes (e.g., ['.rst', '.md', '.txt'])
+        """
+        if not self.app:
+            return ['.rst']  # Default fallback
+
+        source_suffix = self.app.config.source_suffix
+
+        if isinstance(source_suffix, dict):
+            return list(source_suffix.keys())
+        elif isinstance(source_suffix, list):
+            return source_suffix
+        else:
+            return [source_suffix]  # String format
