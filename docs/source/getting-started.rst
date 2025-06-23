@@ -31,7 +31,7 @@ Once added, the extension will automatically generate the LLMs.txt files during 
 See :doc:`advanced-configuration` for more information about how to use **sphinx-llms-txt**.
 
 How It Works
------------
+------------
 
 During the Sphinx build process:
 
