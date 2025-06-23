@@ -12,7 +12,7 @@ from .manager import LLMSFullManager
 from .processor import DocumentProcessor
 from .writer import FileWriter
 
-__version__ = "0.2.4"
+__version__ = "0.3.0"
 
 # Export classes needed by tests
 __all__ = [
@@ -25,9 +25,14 @@ __all__ = [
 # Global manager instance
 _manager = LLMSFullManager()
 
+# Store root document first paragraph
+_root_first_paragraph = ""
+
 
 def doctree_resolved(app: Sphinx, doctree, docname: str):
     """Called when a docname has been resolved to a document."""
+    global _root_first_paragraph
+
     # Extract title from the document
     title = None
     # findall() returns a generator, convert to list to check if it has elements
@@ -38,6 +43,14 @@ def doctree_resolved(app: Sphinx, doctree, docname: str):
     if title:
         _manager.update_page_title(docname, title)
 
+    # Extract first paragraph from root document
+    if docname == app.config.master_doc:
+        for node in doctree.traverse(nodes.paragraph):
+            first_para = node.astext()
+            if first_para:
+                _root_first_paragraph = first_para
+                break
+
 
 def build_finished(app: Sphinx, exception):
     """Called when the build is finished."""
@@ -47,12 +60,17 @@ def build_finished(app: Sphinx, exception):
         _manager.set_master_doc(app.config.master_doc)
         _manager.set_app(app)
 
+        # Get the summary - use configured value or extracted first paragraph
+        summary = app.config.llms_txt_summary
+        if summary is None:
+            summary = _root_first_paragraph
+
         # Set up configuration
         config = {
             "llms_txt_file": app.config.llms_txt_file,
             "llms_txt_filename": app.config.llms_txt_filename,
             "llms_txt_title": app.config.llms_txt_title,
-            "llms_txt_summary": app.config.llms_txt_summary,
+            "llms_txt_summary": summary,
             "llms_txt_full_file": app.config.llms_txt_full_file,
             "llms_txt_full_filename": app.config.llms_txt_full_filename,
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
@@ -91,9 +109,10 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.connect("doctree-resolved", doctree_resolved)
     app.connect("build-finished", build_finished)
 
-    # Reset manager for each build
-    global _manager
+    # Reset manager and root paragraph for each build
+    global _manager, _root_first_paragraph
     _manager = LLMSFullManager()
+    _root_first_paragraph = ""
 
     return {
         "version": __version__,

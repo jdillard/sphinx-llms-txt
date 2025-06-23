@@ -67,8 +67,8 @@ Project Configuration Values
 
 .. confval:: llms_txt_summary
 
-   - **Type**: string or ``None``
-   - **Default**: ``None``
+   - **Type**: string
+   - **Default**: The first paragraph in the root document, else an empty string
    - **Description**: Optional, but recommended, summary description for ``llms.txt``.
      See :ref:`custom_summary`.
 
