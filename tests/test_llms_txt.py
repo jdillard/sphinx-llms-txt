@@ -334,3 +334,396 @@ def test_write_verbose_info_with_baseurl(tmp_path):
 
     assert "- [Home Page](https://example.org/index.html)" in content
     assert "- [About Us](https://example.org/about.html)" in content
+
+
+def test_get_source_suffixes_with_dict():
+    """Test _get_source_suffixes method with dict source_suffix."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with dict source_suffix
+    class MockApp:
+        class Config:
+            source_suffix = {".rst": None, ".md": None, ".txt": None}
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+
+    suffixes = manager._get_source_suffixes()
+    assert set(suffixes) == {".rst", ".md", ".txt"}
+
+
+def test_get_source_suffixes_with_list():
+    """Test _get_source_suffixes method with list source_suffix."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with list source_suffix
+    class MockApp:
+        class Config:
+            source_suffix = [".rst", ".md"]
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+
+    suffixes = manager._get_source_suffixes()
+    assert suffixes == [".rst", ".md"]
+
+
+def test_get_source_suffixes_with_string():
+    """Test _get_source_suffixes method with string source_suffix."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with string source_suffix
+    class MockApp:
+        class Config:
+            source_suffix = ".rst"
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+
+    suffixes = manager._get_source_suffixes()
+    assert suffixes == [".rst"]
+
+
+def test_get_source_suffixes_no_app():
+    """Test _get_source_suffixes method with no app set."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    manager = LLMSFullManager()
+
+    suffixes = manager._get_source_suffixes()
+    assert suffixes == [".rst"]  # Default fallback
+
+
+def test_html_sourcelink_suffix_default():
+    """Test html_sourcelink_suffix defaults to .txt when no app is set."""
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    manager = LLMSFullManager()
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+        }
+    )
+
+    # Create a temporary directory structure
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        # Create directories
+        import os
+
+        os.makedirs(sources_dir, exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        # Create a test source file with default .txt suffix
+        test_file = f"{sources_dir}/index.rst.txt"
+        with open(test_file, "w") as f:
+            f.write("Test content")
+
+        # Mock env with minimal required attributes
+        class MockEnv:
+            all_docs = {"index": None}
+            titles = {
+                "index": type("TitleNode", (), {"astext": lambda: "Test Title"})()
+            }
+            toctree_includes = {}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("index")
+
+        # Test that it uses .txt as the default suffix
+        manager.combine_sources(outdir, srcdir)
+
+        # Verify the file was found and processed (check if output file exists)
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+
+def test_html_sourcelink_suffix_custom():
+    """Test html_sourcelink_suffix uses custom value from Sphinx config."""
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with custom html_sourcelink_suffix
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = "source"
+            source_suffix = ".rst"
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+        }
+    )
+
+    # Create a temporary directory structure
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        # Create directories
+        import os
+
+        os.makedirs(sources_dir, exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        # Create a test source file with custom .source suffix
+        test_file = f"{sources_dir}/index.rst.source"
+        with open(test_file, "w") as f:
+            f.write("Test content")
+
+        # Mock env with minimal required attributes
+        class MockEnv:
+            all_docs = {"index": None}
+            titles = {
+                "index": type("TitleNode", (), {"astext": lambda: "Test Title"})()
+            }
+            toctree_includes = {}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("index")
+
+        # Test that it uses .source as the custom suffix
+        manager.combine_sources(outdir, srcdir)
+
+        # Verify the file was found and processed
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+
+def test_html_sourcelink_suffix_with_dot():
+    """Test html_sourcelink_suffix adds dot if missing."""
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with html_sourcelink_suffix without leading dot
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = "src"  # No leading dot
+            source_suffix = ".rst"
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+        }
+    )
+
+    # Create a temporary directory structure
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        # Create directories
+        import os
+
+        os.makedirs(sources_dir, exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        # Create a test source file with .src suffix (dot should be added automatically)
+        test_file = f"{sources_dir}/index.rst.src"
+        with open(test_file, "w") as f:
+            f.write("Test content")
+
+        # Mock env with minimal required attributes
+        class MockEnv:
+            all_docs = {"index": None}
+            titles = {
+                "index": type("TitleNode", (), {"astext": lambda: "Test Title"})()
+            }
+            toctree_includes = {}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("index")
+
+        # Test that it adds the dot and finds the file
+        manager.combine_sources(outdir, srcdir)
+
+        # Verify the file was found and processed
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+
+def test_mixed_source_file_formats():
+    """Test handling of mixed source file formats (.rst, .md, .txt)."""
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with multiple source suffixes
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = ".txt"
+            source_suffix = {".rst": None, ".md": None, ".txt": None}
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+        }
+    )
+
+    # Create a temporary directory structure
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        # Create directories
+        import os
+
+        os.makedirs(sources_dir, exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        # Create test source files with different formats
+        files_to_create = [
+            f"{sources_dir}/page1.rst.txt",
+            f"{sources_dir}/page2.md.txt",
+            f"{sources_dir}/page3.txt.txt",
+        ]
+
+        for test_file in files_to_create:
+            with open(test_file, "w") as f:
+                f.write(f"Content for {os.path.basename(test_file)}")
+
+        # Mock env with all documents
+        class MockEnv:
+            all_docs = {"page1": None, "page2": None, "page3": None}
+            titles = {
+                "page1": type("TitleNode", (), {"astext": lambda: "Page 1"})(),
+                "page2": type("TitleNode", (), {"astext": lambda: "Page 2"})(),
+                "page3": type("TitleNode", (), {"astext": lambda: "Page 3"})(),
+            }
+            toctree_includes = {}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("page1")
+
+        # Test that all file formats are found and processed
+        manager.combine_sources(outdir, srcdir)
+
+        # Verify the output file was created and contains content from all formats
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+        with open(output_file, "r") as f:
+            content = f.read()
+
+        # Should contain content from all three files
+        assert "Content for page1.rst.txt" in content
+        assert "Content for page2.md.txt" in content
+        assert "Content for page3.txt.txt" in content
+
+
+def test_source_suffix_detection_priority():
+    """Test source suffix detection tries formats in correct order for docnames."""
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Mock Sphinx app with ordered source suffixes
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = ".txt"
+            source_suffix = [".rst", ".md"]  # rst has priority over md
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+        }
+    )
+
+    # Create a temporary directory structure
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        # Create directories
+        import os
+
+        os.makedirs(sources_dir, exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        # Create both .rst and .md versions of the same document
+        # Only create files for the specific docname "index"
+        rst_file = f"{sources_dir}/index.rst.txt"
+        md_file = f"{sources_dir}/index.md.txt"
+
+        with open(rst_file, "w") as f:
+            f.write("RST content for index")
+
+        with open(md_file, "w") as f:
+            f.write("Markdown content for index")
+
+        # Mock env with only the index document
+        class MockEnv:
+            all_docs = {"index": None}
+            titles = {
+                "index": type("TitleNode", (), {"astext": lambda: "Index Page"})()
+            }
+            toctree_includes = {"index": []}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("index")
+
+        # Test the priority behavior
+        manager.combine_sources(outdir, srcdir)
+
+        # Check that output file was created
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+        with open(output_file, "r") as f:
+            content = f.read()
+
+        # The system should prefer RST over MD for the "index" docname
+        # But since both files exist and the second phase adds remaining files,
+        # both will be included. The test verifies that RST appears first
+        # (indicating it was found first in the priority order)
+        assert "RST content for index" in content
+
+        # Find positions to verify order
+        rst_pos = content.find("RST content for index")
+        md_pos = content.find("Markdown content for index")
+
+        # RST should come before MD (due to priority in toctree processing)
+        assert rst_pos < md_pos, "RST content should appear before MD content"

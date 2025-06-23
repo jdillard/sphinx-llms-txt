@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.2.4
+-----
+
+- Support source file suffix detection
+  `#21 <https://github.com/jdillard/sphinx-llms-txt/pull/21>`_
+
 0.2.3
 -----
 
