@@ -117,7 +117,9 @@ class LLMSFullManager:
         docname_to_file = {}
 
         # Get the source link suffix from Sphinx config
-        source_link_suffix = self.app.config.html_sourcelink_suffix
+        source_link_suffix = (
+            self.app.config.html_sourcelink_suffix if self.app else ".txt"
+        )
 
         # Handle empty string case specially
         if source_link_suffix == "":
