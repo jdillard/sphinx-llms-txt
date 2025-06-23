@@ -48,9 +48,17 @@ class DocumentCollector:
         Returns:
             list: List of source file suffixes (e.g., ['.rst', '.md', '.txt'])
         """
+        if not self.app:
+            return [".rst"]  # Default fallback
+
         source_suffix = self.app.config.source_suffix
 
-        return list(source_suffix.keys())
+        if isinstance(source_suffix, dict):
+            return list(source_suffix.keys())
+        elif isinstance(source_suffix, list):
+            return source_suffix
+        else:
+            return [source_suffix]  # String format
 
     def _get_docname_suffix(self, docname: str, sources_dir) -> str:
         """
