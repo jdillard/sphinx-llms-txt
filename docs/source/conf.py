@@ -15,6 +15,10 @@ import subprocess
 project = "sphinx-llms-txt"
 copyright = "Jared Dillard"
 author = "Jared Dillard"
+llms_txt_summary = """
+A Sphinx extension that generates a summary llms.txt file,written in Markdown,
+and a single combined documentation llms-full.txt file, written in reStructuredText.
+"""
 
 # check if the current commit is tagged as a release (vX.Y.Z)
 try:
