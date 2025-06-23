@@ -3,7 +3,7 @@ Document collector module for sphinx-llms-txt.
 """
 
 import fnmatch
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
@@ -19,6 +19,7 @@ class DocumentCollector:
         self.master_doc: str = None
         self.env: BuildEnvironment = None
         self.config: Dict[str, Any] = {}
+        self.app = None
 
     def set_master_doc(self, master_doc: str):
         """Set the master document name."""
@@ -37,8 +38,65 @@ class DocumentCollector:
         """Set configuration options."""
         self.config = config
 
-    def get_page_order(self) -> List[str]:
-        """Get the correct page order from the toctree structure."""
+    def set_app(self, app):
+        """Set the Sphinx application reference."""
+        self.app = app
+
+    def _get_source_suffixes(self):
+        """Get all valid source file suffixes from Sphinx configuration.
+
+        Returns:
+            list: List of source file suffixes (e.g., ['.rst', '.md', '.txt'])
+        """
+        source_suffix = self.app.config.source_suffix
+
+        return list(source_suffix.keys())
+
+    def _get_docname_suffix(self, docname: str, sources_dir) -> str:
+        """
+        Determine the source suffix for a given docname by checking which
+        file exists.
+
+        Args:
+            docname: The document name to check
+            sources_dir: Path to the _sources directory
+
+        Returns:
+            The source suffix if found, or None if no matching file exists
+        """
+        if not sources_dir or not sources_dir.exists():
+            return None
+
+        # Get the source link suffix from Sphinx config
+        source_link_suffix = ""
+        if self.app and hasattr(self.app.config, "html_sourcelink_suffix"):
+            source_link_suffix = self.app.config.html_sourcelink_suffix
+            # Handle empty string case specially
+            if source_link_suffix == "":
+                source_link_suffix = ""  # Keep it empty
+            elif not source_link_suffix.startswith("."):
+                source_link_suffix = "." + source_link_suffix
+
+        # Get the source file suffixes from Sphinx config
+        source_suffixes = self._get_source_suffixes()
+
+        # Try to find the source file with any of the valid source suffixes
+        for src_suffix in source_suffixes:
+            candidate_file = sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+            if candidate_file.exists():
+                return src_suffix
+
+        return None
+
+    def get_page_order(self, sources_dir=None) -> List[Tuple[str, str]]:
+        """Get the correct page order from the toctree structure.
+
+        Args:
+            sources_dir: Optional path to _sources directory for suffix detection
+
+        Returns:
+            List of tuples (docname, source_suffix) in toctree order
+        """
         if not self.env or not self.master_doc:
             return []
 
@@ -52,9 +110,12 @@ class DocumentCollector:
 
             visited.add(docname)
 
-            # Add the current document
-            if docname not in page_order:
-                page_order.append(docname)
+            # Add the current document with its suffix
+            if docname not in [doc for doc, _ in page_order]:
+                suffix = None
+                if sources_dir:
+                    suffix = self._get_docname_suffix(docname, sources_dir)
+                page_order.append((docname, suffix))
 
             # Check for toctree entries in this document
             try:
@@ -101,22 +162,33 @@ class DocumentCollector:
 
         # Add any remaining documents not in the toctree (sorted)
         if hasattr(self.env, "all_docs"):
+            processed_docnames = {doc for doc, _ in page_order}
             remaining = sorted(
-                [doc for doc in self.env.all_docs.keys() if doc not in page_order]
+                [
+                    doc
+                    for doc in self.env.all_docs.keys()
+                    if doc not in processed_docnames
+                ]
             )
-            page_order.extend(remaining)
+            for docname in remaining:
+                suffix = None
+                if sources_dir:
+                    suffix = self._get_docname_suffix(docname, sources_dir)
+                page_order.append((docname, suffix))
 
         return page_order
 
-    def filter_excluded_pages(self, page_order: List[str]) -> List[str]:
+    def filter_excluded_pages(
+        self, page_order: List[Tuple[str, str]]
+    ) -> List[Tuple[str, str]]:
         """Filter out excluded pages from the page order."""
         exclude_patterns = self.config.get("llms_txt_exclude")
         if exclude_patterns:
             return [
-                page
-                for page in page_order
+                (docname, suffix)
+                for docname, suffix in page_order
                 if not any(
-                    self._match_exclude_pattern(page, pattern)
+                    self._match_exclude_pattern(docname, pattern)
                     for pattern in exclude_patterns
                 )
             ]
