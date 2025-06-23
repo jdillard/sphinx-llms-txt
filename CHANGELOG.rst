@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.0
+-----
+
+- Use first paragraph as default for ``llms_txt_summary``
+  `#22 <https://github.com/jdillard/sphinx-llms-txt/pull/22>`_
+
 0.2.4
 -----
 
