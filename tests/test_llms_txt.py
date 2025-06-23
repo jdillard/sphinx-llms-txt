@@ -727,3 +727,84 @@ def test_source_suffix_detection_priority():
 
         # RST should come before MD (due to priority in toctree processing)
         assert rst_pos < md_pos, "RST content should appear before MD content"
+
+
+def test_summary_default_uses_first_paragraph():
+    """
+    Test that summary defaults to first paragraph of root document when not configured.
+    """
+    from docutils import nodes
+    from docutils.frontend import OptionParser
+    from docutils.parsers.rst import Parser
+    from docutils.utils import new_document
+
+    from sphinx_llms_txt import build_finished, doctree_resolved
+
+    # Create a proper document with settings
+    settings = OptionParser(components=(Parser,)).get_default_values()
+    doctree = new_document("<rst-doc>", settings)
+
+    title = nodes.title(text="Test Title")
+    paragraph = nodes.paragraph(
+        text="This is the first paragraph that should be used as summary."
+    )
+    doctree.append(title)
+    doctree.append(paragraph)
+
+    # Mock Sphinx app
+    class MockApp:
+        class Config:
+            master_doc = "index"
+            llms_txt_summary = None  # Not configured
+            llms_txt_file = True
+            llms_txt_filename = "llms.txt"
+            llms_txt_title = None
+            llms_txt_full_file = True
+            llms_txt_full_filename = "llms-full.txt"
+            llms_txt_full_max_size = None
+            llms_txt_directives = []
+            llms_txt_exclude = []
+            html_baseurl = ""
+
+        config = Config()
+        outdir = "/tmp/build"
+        srcdir = "/tmp/source"
+
+        class Env:
+            titles = {
+                "index": type("TitleNode", (), {"astext": lambda self: "Test Title"})()
+            }
+
+        env = Env()
+
+    app = MockApp()
+
+    # Reset the global state
+    import sphinx_llms_txt
+
+    sphinx_llms_txt._root_first_paragraph = ""
+
+    # Call doctree_resolved to extract the first paragraph
+    doctree_resolved(app, doctree, "index")
+
+    # Verify the first paragraph was extracted
+    assert (
+        sphinx_llms_txt._root_first_paragraph
+        == "This is the first paragraph that should be used as summary."
+    )
+
+    # Mock the manager methods to avoid actual file operations
+    original_combine_sources = sphinx_llms_txt._manager.combine_sources
+    sphinx_llms_txt._manager.combine_sources = lambda outdir, srcdir: None
+
+    # Call build_finished and verify the summary is set correctly
+    build_finished(app, None)
+
+    # Check that the summary was properly configured
+    assert (
+        sphinx_llms_txt._manager.config["llms_txt_summary"]
+        == "This is the first paragraph that should be used as summary."
+    )
+
+    # Restore original method
+    sphinx_llms_txt._manager.combine_sources = original_combine_sources
