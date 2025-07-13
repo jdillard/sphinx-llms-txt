@@ -84,7 +84,7 @@ html_theme = "furo"
 html_theme_options = {
     "source_repository": "https://github.com/jdillard/sphinx-llms-txt/",
     "source_branch": "main",
-    "source_directory": "docs/",
+    "source_directory": "docs/source/",
 }
 
 html_baseurl = "https://sphinx-llms-txt.readthedocs.org/"
