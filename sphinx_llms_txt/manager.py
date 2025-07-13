@@ -2,8 +2,10 @@
 Main manager module for sphinx-llms-txt.
 """
 
+import glob
+import subprocess
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
@@ -14,6 +16,104 @@ from .processor import DocumentProcessor
 from .writer import FileWriter
 
 logger = logging.getLogger(__name__)
+
+
+def _get_git_root(path: Path) -> Optional[Path]:
+    """Get the git root directory for a given path."""
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=path,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return Path(result.stdout.strip())
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return None
+
+
+def _get_language_from_extension(file_path: Path) -> str:
+    """Map file extension to language identifier for code blocks."""
+    extension_map = {
+        ".py": "python",
+        ".js": "javascript",
+        ".jsx": "jsx",
+        ".ts": "typescript",
+        ".tsx": "tsx",
+        ".java": "java",
+        ".c": "c",
+        ".cpp": "cpp",
+        ".cc": "cpp",
+        ".cxx": "cpp",
+        ".h": "c",
+        ".hpp": "cpp",
+        ".cs": "csharp",
+        ".php": "php",
+        ".rb": "ruby",
+        ".go": "go",
+        ".rs": "rust",
+        ".swift": "swift",
+        ".kt": "kotlin",
+        ".scala": "scala",
+        ".sh": "bash",
+        ".bash": "bash",
+        ".zsh": "zsh",
+        ".fish": "fish",
+        ".ps1": "powershell",
+        ".html": "html",
+        ".htm": "html",
+        ".xml": "xml",
+        ".css": "css",
+        ".scss": "scss",
+        ".sass": "sass",
+        ".less": "less",
+        ".json": "json",
+        ".yaml": "yaml",
+        ".yml": "yaml",
+        ".toml": "toml",
+        ".ini": "ini",
+        ".cfg": "ini",
+        ".conf": "ini",
+        ".sql": "sql",
+        ".md": "markdown",
+        ".rst": "rst",
+        ".txt": "text",
+        ".dockerfile": "dockerfile",
+        ".dockerignore": "text",
+        ".gitignore": "text",
+        ".gitattributes": "text",
+        ".editorconfig": "ini",
+        ".makefile": "makefile",
+        ".r": "r",
+        ".R": "r",
+        ".m": "matlab",
+        ".pl": "perl",
+        ".lua": "lua",
+        ".vim": "vim",
+        ".vimrc": "vim",
+        ".proto": "protobuf",
+        ".thrift": "thrift",
+        ".graphql": "graphql",
+        ".gql": "graphql",
+    }
+
+    # Get the extension from the file path
+    ext = file_path.suffix.lower()
+
+    # Handle special cases like Makefile, Dockerfile without extension
+    if not ext:
+        name = file_path.name.lower()
+        if name in ["makefile", "gnumakefile"]:
+            return "makefile"
+        elif name in ["dockerfile", "dockerfile.dev", "dockerfile.prod"]:
+            return "dockerfile"
+        elif name.startswith("dockerfile."):
+            return "dockerfile"
+        else:
+            return "text"
+
+    return extension_map.get(ext, "text")
 
 
 class LLMSFullManager:
@@ -154,9 +254,15 @@ class LLMSFullManager:
         # Generate content
         content_parts = []
 
+        # Track code files for later processing
+        code_file_parts = []
+
+        # Count lines in code files (initially 0)
+        code_files_line_count = 0
+
         # Add pages in order
         added_files = set()
-        total_line_count = 0
+        total_line_count = code_files_line_count
         max_lines = self.config.get("llms_txt_full_max_size")
         abort_due_to_max_lines = False
 
@@ -259,6 +365,28 @@ class LLMSFullManager:
                     content_parts.append(content)
                     total_line_count += line_count
 
+        # Process code files at the end if configured
+        if not abort_due_to_max_lines:
+            code_file_parts = self._process_code_files()
+            code_files_line_count = sum(
+                part.count("\n") + 1 for part in code_file_parts
+            )
+
+            # Check if adding code files would exceed the maximum line count
+            max_lines = self.config.get("llms_txt_full_max_size")
+            if (
+                max_lines is not None
+                and total_line_count + code_files_line_count > max_lines
+            ):
+                logger.warning(
+                    f"sphinx-llms-txt: Adding code files would exceed max line limit "
+                    f"({max_lines}). Current: {total_line_count}, "
+                    f"Code files: {code_files_line_count}. Skipping code files."
+                )
+            else:
+                content_parts.extend(code_file_parts)
+                total_line_count += code_files_line_count
+
         # Check if line limit was exceeded before creating the file
         max_lines = self.config.get("llms_txt_full_max_size")
         if abort_due_to_max_lines or (
@@ -352,3 +480,112 @@ class LLMSFullManager:
             return source_suffix
         else:
             return [source_suffix]  # String format
+
+    def _process_code_files(self) -> List[str]:
+        """Process code files specified in llms_txt_code_files configuration.
+
+        Returns:
+            List of formatted code block strings
+        """
+        code_file_patterns = self.config.get("llms_txt_code_files", [])
+        if not code_file_patterns:
+            return []
+
+        code_parts = []
+        processed_files = set()
+
+        # Process each glob pattern
+        for pattern in code_file_patterns:
+            # Resolve pattern relative to source directory
+            if self.srcdir:
+                pattern_path = Path(self.srcdir) / pattern
+            else:
+                pattern_path = Path(pattern)
+
+            # Use glob to find matching files
+            matching_files = glob.glob(str(pattern_path), recursive=True)
+
+            # Sort files for consistent ordering
+            matching_files.sort()
+
+            for file_path_str in matching_files:
+                file_path = Path(file_path_str)
+
+                # Skip if already processed (in case of overlapping patterns)
+                if file_path.resolve() in processed_files:
+                    continue
+
+                # Skip directories
+                if file_path.is_dir():
+                    continue
+
+                try:
+                    # Read the file content
+                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                        content = f.read()
+
+                    # Get language identifier
+                    language = _get_language_from_extension(file_path)
+
+                    # Get relative path from source directory for title
+                    if self.srcdir:
+                        try:
+                            title = file_path.relative_to(Path(self.srcdir))
+
+                            # Strip base path if configured,
+                            # or auto-detect from git root
+                            base_path = self.config.get("llms_txt_code_base_path")
+                            if base_path is None:
+                                # Auto-detect: try to make path relative to git root
+                                git_root = _get_git_root(Path(self.srcdir))
+                                if git_root:
+                                    try:
+                                        # Get srcdir relative to git root
+                                        srcdir_relative = Path(self.srcdir).relative_to(
+                                            git_root
+                                        )
+                                        # Calculate relative path from srcdir to
+                                        # git root
+                                        if srcdir_relative != Path("."):
+                                            # Count directory levels to go up
+                                            up_levels = len(srcdir_relative.parts)
+                                            base_path = "../" * up_levels
+                                        else:
+                                            base_path = None
+                                    except ValueError:
+                                        base_path = None
+
+                            if base_path:
+                                title_str = str(title)
+                                if title_str.startswith(base_path):
+                                    title = Path(title_str[len(base_path) :])
+                        except ValueError:
+                            # File is not relative to srcdir, use filename
+                            title = file_path.name
+                    else:
+                        title = file_path.name
+
+                    # Format as code block with asterisk borders
+                    title_str = str(title)
+                    star_line = "*" * len(title_str)
+                    code_block = f"""
+{star_line}
+{title_str}
+{star_line}
+
+```{language}
+{content}
+```
+"""
+                    code_parts.append(code_block)
+
+                    processed_files.add(file_path.resolve())
+                    logger.debug(f"sphinx-llms-txt: Added code file: {title}")
+
+                except Exception as e:
+                    logger.warning(
+                        f"sphinx-llms-txt: Error reading code file {file_path}: {e}"
+                    )
+                    continue
+
+        return code_parts
