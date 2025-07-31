@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+- Fix issue when ``source_suffix`` equals ``source_link_suffix``
+  `#29 <https://github.com/jdillard/sphinx-llms-txt/pull/29>`_
+
 0.3.0
 -----
 
