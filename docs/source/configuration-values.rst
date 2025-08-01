@@ -82,3 +82,23 @@ Project Configuration Values
      See :ref:`excluding_content`.
 
    .. versionadded:: 0.2.1
+
+.. confval:: llms_txt_code_files
+
+   - **Type**: list of strings
+   - **Default**: ``[]``
+   - **Description**: A list of glob patterns to include source code files in ``llms_txt_full_filename``.
+     Code files are added at the end of the documentation with syntax highlighting.
+     Patterns are resolved relative to the Sphinx source directory.
+
+   .. versionadded:: 0.4.0
+
+.. confval:: llms_txt_code_base_path
+
+   - **Type**: string or ``None``
+   - **Default**: ``None`` (auto-detect from git root)
+   - **Description**: Base path to strip from code file paths when displaying titles.
+     When ``None``, automatically detects the relative path from the Sphinx source
+     directory to the git root and strips that prefix from file paths.
+
+   .. versionadded:: 0.4.0
