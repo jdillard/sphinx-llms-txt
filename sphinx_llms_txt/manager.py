@@ -402,8 +402,15 @@ class LLMSFullManager:
                     f"Code files: {code_files_line_count}. Skipping code files."
                 )
             else:
-                content_parts.extend(code_file_parts)
-                total_line_count += code_files_line_count
+                # Add source code files section if there are any code files
+                if code_file_parts:
+                    section_header = self._create_code_files_section_header()
+                    content_parts.append(section_header)
+                    content_parts.extend(code_file_parts)
+                    # Add line count for the section header too
+                    total_line_count += (
+                        code_files_line_count + section_header.count("\n") + 1
+                    )
 
         # Check if line limit was exceeded before creating the file
         max_lines = self.config.get("llms_txt_full_max_size")
@@ -583,18 +590,23 @@ class LLMSFullManager:
                     else:
                         title = file_path.name
 
-                    # Format as code block with asterisk borders
+                    # Format as code block with equals underline
                     title_str = str(title)
-                    star_line = "*" * len(title_str)
-                    code_block = f"""
-{star_line}
-{title_str}
-{star_line}
+                    equals_line = "=" * len(title_str)
 
-```{language}
-{content}
-```
-"""
+                    # Indent the content for reStructuredText code-block directive
+                    indented_content = "\n".join(
+                        f"   {line}" if line.strip() else ""
+                        for line in content.splitlines()
+                    )
+
+                    code_block = f"""
+{title_str}
+{equals_line}
+
+.. code-block:: {language}
+
+{indented_content}"""
                     code_parts.append(code_block)
 
                     processed_files.add(file_path.resolve())
@@ -607,3 +619,20 @@ class LLMSFullManager:
                     continue
 
         return code_parts
+
+    def _create_code_files_section_header(self) -> str:
+        """Create the section header for source code files.
+
+        Returns:
+            String containing the section header with title, underlines, and description
+        """
+        section_title = "Source Code Files"
+        star_line = "*" * len(section_title)
+
+        header = f"""
+{star_line}
+{section_title}
+{star_line}
+
+This section contains source code files from the project repository. These files are included to provide implementation context and technical details that complement the documentation above."""  # noqa: E501
+        return header
