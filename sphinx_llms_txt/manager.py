@@ -238,13 +238,22 @@ class LLMSFullManager:
 
             # Build the source file path directly using the known suffix
             if src_suffix:
-                source_file = sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                # Avoid duplicate extensions when source_suffix == source_link_suffix
+                if src_suffix == source_link_suffix:
+                    source_file = sources_dir / f"{docname}{src_suffix}"
+                    expected_suffix = src_suffix
+                else:
+                    source_file = (
+                        sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                    )
+                    expected_suffix = f"{src_suffix}{source_link_suffix}"
+
                 if source_file.exists():
                     docname_to_file[docname] = source_file
                 else:
                     logger.warning(
                         f"sphinx-llms-txt: Source file not found for: {docname}."
-                        f"Expected: {docname}{src_suffix}{source_link_suffix}"
+                        f"Expected: {docname}{expected_suffix}"
                     )
             else:
                 logger.warning(
@@ -311,7 +320,11 @@ class LLMSFullManager:
             source_suffixes = self._get_source_suffixes()
             all_source_files = []
             for src_suffix in source_suffixes:
-                glob_pattern = f"**/*{src_suffix}{source_link_suffix}"
+                # Avoid duplicate extensions when source_suffix == source_link_suffix
+                if src_suffix == source_link_suffix:
+                    glob_pattern = f"**/*{src_suffix}"
+                else:
+                    glob_pattern = f"**/*{src_suffix}{source_link_suffix}"
                 all_source_files.extend(sources_dir.glob(glob_pattern))
 
             processed_paths = set(file.resolve() for file in docname_to_file.values())
@@ -337,7 +350,12 @@ class LLMSFullManager:
 
                 # Try each source suffix to find which one this file uses
                 for src_suffix in source_suffixes:
-                    combined_suffix = f"{src_suffix}{source_link_suffix}"
+                    # Avoid duplicate extensions when suffixes match
+                    if src_suffix == source_link_suffix:
+                        combined_suffix = src_suffix
+                    else:
+                        combined_suffix = f"{src_suffix}{source_link_suffix}"
+
                     if rel_path.endswith(combined_suffix):
                         docname = rel_path[: -len(combined_suffix)]  # Remove suffix
                         break

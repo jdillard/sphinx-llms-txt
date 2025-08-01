@@ -82,7 +82,11 @@ html_theme = "furo"
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-html_theme_options = {}
+html_theme_options = {
+    "source_repository": "https://github.com/jdillard/sphinx-llms-txt/",
+    "source_branch": "main",
+    "source_directory": "docs/source/",
+}
 
 html_baseurl = "https://sphinx-llms-txt.readthedocs.org/"
 

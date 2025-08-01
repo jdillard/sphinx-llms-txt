@@ -90,7 +90,13 @@ class DocumentCollector:
 
         # Try to find the source file with any of the valid source suffixes
         for src_suffix in source_suffixes:
-            candidate_file = sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+            # Avoid duplicate extensions when source_suffix == source_link_suffix
+            if src_suffix == source_link_suffix:
+                candidate_file = sources_dir / f"{docname}{src_suffix}"
+            else:
+                candidate_file = (
+                    sources_dir / f"{docname}{src_suffix}{source_link_suffix}"
+                )
             if candidate_file.exists():
                 return src_suffix
 

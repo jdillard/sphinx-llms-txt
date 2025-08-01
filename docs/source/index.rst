@@ -3,7 +3,7 @@ Sphinx llms.txt Generator
 
 A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Markdown, and a single combined documentation ``llms-full.txt`` file, written in reStructuredText.
 
-|PyPI version| |Downloads| |Parallel Safe| |GitHub Stars|
+|PyPI version| |Conda Version| |Downloads| |Parallel Safe| |GitHub Stars|
 
 .. toctree::
    :maxdepth: 2
@@ -20,6 +20,9 @@ A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Mar
 .. |PyPI version| image:: https://img.shields.io/pypi/v/sphinx-llms-txt.svg
    :target: https://pypi.python.org/pypi/sphinx-llms-txt
    :alt: Latest PyPi Version
+.. |Conda Version| image:: https://img.shields.io/conda/vn/conda-forge/sphinx-llms-txt.svg
+    :target: https://anaconda.org/conda-forge/sphinx-llms-txt
+    :alt: Latest Conda Version
 .. |Downloads| image:: https://static.pepy.tech/badge/sphinx-llms-txt/month
     :target: https://pepy.tech/project/sphinx-llms-txt
     :alt: PyPi Downloads per month
