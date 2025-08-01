@@ -765,6 +765,7 @@ def test_summary_default_uses_first_paragraph():
             llms_txt_directives = []
             llms_txt_exclude = []
             llms_txt_code_files = []
+            llms_txt_code_base_path = None
             html_baseurl = ""
 
         config = Config()
