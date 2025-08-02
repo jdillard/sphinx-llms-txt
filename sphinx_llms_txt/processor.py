@@ -144,9 +144,13 @@ class DocumentProcessor:
             path = match.group(3).strip()  # The path argument
 
             # Special handling for _images directory (Sphinx static files)
-            if path.startswith("_images/"):
-                # Convert relative _images to absolute /_images
-                full_path = "/" + path
+            # Handle both relative _images/ and paths containing /_images/
+            if "_images/" in path:
+                # Extract the part after _images/
+                images_index = path.find("_images/")
+                remaining_path = path[images_index + len("_images/") :]
+                # Convert to absolute /_images path
+                full_path = f"/_images/{remaining_path}"
                 # Add base URL if configured
                 full_path = self._add_base_url(full_path, base_url)
                 return f"{prefix}{full_path}"
