@@ -149,6 +149,32 @@ Code files are processed as follows:
 - **Automatic detection**: File language is detected from the extension for syntax highlighting
 - **Formatting**: Each file is presented with a bordered title and syntax-highlighted code block
 
+.. _include_exclude_syntax:
+
+Include/Exclude Pattern Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use include/exclude syntax to precisely control which files are included:
+
+.. code-block:: python
+
+   llms_txt_code_files = [
+       "+:src/**/*.py",           # Include all Python files in src
+       "-:src/**/__pycache__/**", # Exclude Python cache files
+   ]
+
+Pattern syntax:
+
+- **+:pattern**: Include files matching the pattern
+- **-:pattern**: Exclude files matching the pattern
+
+Processing order:
+
+1. All include patterns (``+:``) are processed first to collect matching files
+2. Exclude patterns (``-:``) are then applied to filter out unwanted files
+
+.. tip:: Use include/exclude patterns to avoid adding temporary files, cache directories, or backup files to your documentation.
+
 .. _customizing_code_paths:
 
 Customizing Code File Paths
@@ -210,6 +236,11 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    # Content filtering
    llms_txt_exclude = ["search", "genindex", "404", "private_*"]
 
-   # Source code inclusion
-   llms_txt_code_files = ["../../src/**/*.py", "../../config/*.yaml"]
+   # Source code inclusion with include/exclude patterns
+   llms_txt_code_files = [
+       "+:../../src/**/*.py",           # Include Python files
+       "+:../../config/*.yaml",         # Include config files
+       "-:../../src/**/__pycache__/**", # Exclude cache files
+       "-:../../**/*.bak",              # Exclude backup files
+   ]
    llms_txt_code_base_path = "../../"

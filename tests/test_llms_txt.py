@@ -810,3 +810,169 @@ def test_summary_default_uses_first_paragraph():
 
     # Restore original method
     sphinx_llms_txt._manager.combine_sources = original_combine_sources
+
+
+def test_code_files_include_exclude_patterns(tmp_path):
+    """Test the +/- pattern syntax for llms_txt_code_files configuration."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create test directory structure
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    docs_dir = src_dir / "docs"
+    docs_dir.mkdir()
+
+    cache_dir = docs_dir / "__pycache__"
+    cache_dir.mkdir()
+
+    # Create test files
+    (docs_dir / "example.rst").write_text("Example RST content")
+    (docs_dir / "guide.rst").write_text("Guide RST content")
+    (docs_dir / "backup.bak").write_text("Backup file content")
+    (cache_dir / "compiled.pyc").write_text("Compiled Python")
+
+    # Create manager and set source directory
+    manager = LLMSFullManager()
+    manager.srcdir = str(src_dir)
+
+    # Test configuration with include/exclude patterns
+    config = {
+        "llms_txt_code_files": [
+            "+:docs/**/*.rst",  # Include all RST files in docs
+            "-:docs/**/__pycache__/**",  # Exclude pycache files
+            "-:docs/**/*.bak",  # Exclude backup files
+        ]
+    }
+    manager.set_config(config)
+
+    # Process code files
+    code_parts = manager._process_code_files()
+
+    # Verify we have the expected number of files
+    assert len(code_parts) == 2, f"Expected 2 files, got {len(code_parts)}"
+
+    # Extract file titles from code blocks
+    titles = []
+    for part in code_parts:
+        lines = part.strip().split("\n")
+        if lines:
+            titles.append(lines[0])
+
+    # Verify expected files are included
+    assert "docs/example.rst" in titles
+    assert "docs/guide.rst" in titles
+
+    # Verify excluded files are not present
+    content = "\n".join(code_parts)
+    assert "backup.bak" not in content
+    assert "__pycache__" not in content
+    assert "compiled.pyc" not in content
+
+
+def test_code_files_exclude_only_patterns(tmp_path):
+    """Test that exclude-only patterns result in no files being included."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create test directory structure
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    docs_dir = src_dir / "docs"
+    docs_dir.mkdir()
+
+    # Create test files
+    (docs_dir / "example.rst").write_text("Example RST content")
+
+    # Create manager and set source directory
+    manager = LLMSFullManager()
+    manager.srcdir = str(src_dir)
+
+    # Test configuration with only exclude patterns
+    config = {
+        "llms_txt_code_files": [
+            "-:docs/**/*.rst",  # Only exclude pattern, no includes
+        ]
+    }
+    manager.set_config(config)
+
+    # Process code files
+    code_parts = manager._process_code_files()
+
+    # Should have no files with exclude-only patterns
+    assert len(code_parts) == 0, "Should have no files with exclude-only patterns"
+
+
+def test_code_files_no_prefix_patterns(tmp_path):
+    """Test that patterns without prefix are ignored."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create test directory structure
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    docs_dir = src_dir / "docs"
+    docs_dir.mkdir()
+
+    # Create test files
+    (docs_dir / "example.rst").write_text("Example RST content")
+    (docs_dir / "backup.bak").write_text("Backup file content")
+
+    # Create manager and set source directory
+    manager = LLMSFullManager()
+    manager.srcdir = str(src_dir)
+
+    # Test configuration with no prefix (should be ignored)
+    config = {
+        "llms_txt_code_files": [
+            "docs/**/*.rst",  # No prefix = ignored
+            "+:docs/**/*.rst",  # Include RST files
+            "-:docs/**/*.bak",  # Exclude backup files
+        ]
+    }
+    manager.set_config(config)
+
+    # Process code files
+    code_parts = manager._process_code_files()
+
+    # Should include RST files (from +: pattern) and exclude BAK files (from -: pattern)
+    assert len(code_parts) == 1, "Should include RST files and exclude BAK files"
+
+    content = "\n".join(code_parts)
+    assert "Example RST content" in content
+    assert "backup.bak" not in content
+
+
+def test_code_files_ignored_patterns(tmp_path):
+    """Test that patterns without +: or -: prefix are completely ignored."""
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create test directory structure
+    src_dir = tmp_path / "src"
+    src_dir.mkdir()
+
+    docs_dir = src_dir / "docs"
+    docs_dir.mkdir()
+
+    # Create test files
+    (docs_dir / "example.rst").write_text("Example RST content")
+
+    # Create manager and set source directory
+    manager = LLMSFullManager()
+    manager.srcdir = str(src_dir)
+
+    # Test configuration with only no-prefix patterns (should result in no files)
+    config = {
+        "llms_txt_code_files": [
+            "docs/**/*.rst",  # No prefix = ignored
+        ]
+    }
+    manager.set_config(config)
+
+    # Process code files
+    code_parts = manager._process_code_files()
+
+    # Should have no files since the pattern without prefix is ignored
+    assert (
+        len(code_parts) == 0
+    ), "Should have no files when only using patterns without prefix"

@@ -509,6 +509,11 @@ class LLMSFullManager:
     def _process_code_files(self) -> List[str]:
         """Process code files specified in llms_txt_code_files configuration.
 
+        Supports include/exclude patterns with +:/- : prefixes:
+        - '+:pattern' = include files matching pattern
+        - '-:pattern' = exclude files matching pattern
+        - 'pattern' (no prefix) = ignored (no special handling)
+
         Returns:
             List of formatted code block strings
         """
@@ -516,11 +521,27 @@ class LLMSFullManager:
         if not code_file_patterns:
             return []
 
+        # Parse patterns into include and exclude lists
+        include_patterns = []
+        exclude_patterns = []
+
+        for pattern in code_file_patterns:
+            if pattern.startswith("-:"):
+                exclude_patterns.append(pattern[2:])  # Remove the '-:' prefix
+            elif pattern.startswith("+:"):
+                include_patterns.append(pattern[2:])  # Remove the '+:' prefix
+            # No prefix = ignore pattern (no special handling)
+
+        # If no include patterns specified, nothing to process
+        if not include_patterns:
+            return []
+
         code_parts = []
         processed_files = set()
+        all_matching_files = set()
 
-        # Process each glob pattern
-        for pattern in code_file_patterns:
+        # First, collect all files matching include patterns
+        for pattern in include_patterns:
             # Resolve pattern relative to source directory
             if self.srcdir:
                 pattern_path = Path(self.srcdir) / pattern
@@ -530,93 +551,117 @@ class LLMSFullManager:
             # Use glob to find matching files
             matching_files = glob.glob(str(pattern_path), recursive=True)
 
-            # Sort files for consistent ordering
-            matching_files.sort()
-
             for file_path_str in matching_files:
                 file_path = Path(file_path_str)
+                if file_path.is_file():  # Only add files, not directories
+                    all_matching_files.add(file_path.resolve())
 
-                # Skip if already processed (in case of overlapping patterns)
-                if file_path.resolve() in processed_files:
-                    continue
+        # Filter out files matching exclude patterns
+        filtered_files = set()
+        for file_path in all_matching_files:
+            should_exclude = False
 
-                # Skip directories
-                if file_path.is_dir():
-                    continue
+            for exclude_pattern in exclude_patterns:
+                # Resolve exclude pattern relative to source directory
+                if self.srcdir:
+                    exclude_pattern_path = Path(self.srcdir) / exclude_pattern
+                else:
+                    exclude_pattern_path = Path(exclude_pattern)
 
-                try:
-                    # Read the file content
-                    with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
-                        content = f.read()
-
-                    # Get language identifier
-                    language = _get_language_from_extension(file_path)
-
-                    # Get relative path from source directory for title
-                    if self.srcdir:
-                        try:
-                            title = file_path.relative_to(Path(self.srcdir))
-
-                            # Strip base path if configured,
-                            # or auto-detect from git root
-                            base_path = self.config.get("llms_txt_code_base_path")
-                            if base_path is None:
-                                # Auto-detect: try to make path relative to git root
-                                git_root = _get_git_root(Path(self.srcdir))
-                                if git_root:
-                                    try:
-                                        # Get srcdir relative to git root
-                                        srcdir_relative = Path(self.srcdir).relative_to(
-                                            git_root
-                                        )
-                                        # Calculate relative path from srcdir to
-                                        # git root
-                                        if srcdir_relative != Path("."):
-                                            # Count directory levels to go up
-                                            up_levels = len(srcdir_relative.parts)
-                                            base_path = "../" * up_levels
-                                        else:
-                                            base_path = None
-                                    except ValueError:
-                                        base_path = None
-
-                            if base_path:
-                                title_str = str(title)
-                                if title_str.startswith(base_path):
-                                    title = Path(title_str[len(base_path) :])
-                        except ValueError:
-                            # File is not relative to srcdir, use filename
-                            title = file_path.name
-                    else:
-                        title = file_path.name
-
-                    # Format as code block with equals underline
-                    title_str = str(title)
-                    equals_line = "=" * len(title_str)
-
-                    # Indent the content for reStructuredText code-block directive
-                    indented_content = "\n".join(
-                        f"   {line}" if line.strip() else ""
-                        for line in content.splitlines()
+                # Check if this file matches the exclude pattern
+                exclude_matches = glob.glob(str(exclude_pattern_path), recursive=True)
+                if str(file_path) in exclude_matches:
+                    should_exclude = True
+                    logger.debug(
+                        f"sphinx-llms-txt: Excluding code file: {file_path} "
+                        f"(matched pattern: {exclude_pattern})"
                     )
+                    break
 
-                    code_block = f"""
+            if not should_exclude:
+                filtered_files.add(file_path)
+
+        # Sort files for consistent ordering
+        sorted_files = sorted(filtered_files)
+
+        for file_path in sorted_files:
+            # Skip if already processed (shouldn't happen with set, but safety check)
+            if file_path in processed_files:
+                continue
+
+            try:
+                # Read the file content
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read()
+
+                # Get language identifier
+                language = _get_language_from_extension(file_path)
+
+                # Get relative path from source directory for title
+                if self.srcdir:
+                    try:
+                        title = file_path.relative_to(Path(self.srcdir))
+
+                        # Strip base path if configured,
+                        # or auto-detect from git root
+                        base_path = self.config.get("llms_txt_code_base_path")
+                        if base_path is None:
+                            # Auto-detect: try to make path relative to git root
+                            git_root = _get_git_root(Path(self.srcdir))
+                            if git_root:
+                                try:
+                                    # Get srcdir relative to git root
+                                    srcdir_relative = Path(self.srcdir).relative_to(
+                                        git_root
+                                    )
+                                    # Calculate relative path from srcdir to
+                                    # git root
+                                    if srcdir_relative != Path("."):
+                                        # Count directory levels to go up
+                                        up_levels = len(srcdir_relative.parts)
+                                        base_path = "../" * up_levels
+                                    else:
+                                        base_path = None
+                                except ValueError:
+                                    base_path = None
+
+                        if base_path:
+                            title_str = str(title)
+                            if title_str.startswith(base_path):
+                                title = Path(title_str[len(base_path) :])
+                    except ValueError:
+                        # File is not relative to srcdir, use filename
+                        title = file_path.name
+                else:
+                    title = file_path.name
+
+                # Format as code block with equals underline
+                title_str = str(title)
+                equals_line = "=" * len(title_str)
+
+                # Indent the content for reStructuredText code-block directive
+                indented_content = "\n".join(
+                    f"   {line}" if line.strip() else ""
+                    for line in content.splitlines()
+                )
+
+                code_block = f"""
 {title_str}
 {equals_line}
 
 .. code-block:: {language}
 
 {indented_content}"""
-                    code_parts.append(code_block)
+                code_parts.append(code_block)
 
-                    processed_files.add(file_path.resolve())
-                    logger.debug(f"sphinx-llms-txt: Added code file: {title}")
+                processed_files.add(file_path)
+                logger.debug(f"sphinx-llms-txt: Added code file: {title}")
 
-                except Exception as e:
-                    logger.warning(
-                        f"sphinx-llms-txt: Error reading code file {file_path}: {e}"
-                    )
-                    continue
+            except Exception as e:
+                logger.warning(
+                    f"sphinx-llms-txt: Error reading code file {file_path}: {e}"
+                )
+                continue
 
         return code_parts
 

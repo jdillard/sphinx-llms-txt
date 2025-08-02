@@ -87,9 +87,18 @@ Project Configuration Values
 
    - **Type**: list of strings
    - **Default**: ``[]``
-   - **Description**: A list of glob patterns to include source code files in ``llms_txt_full_filename``.
+   - **Description**: A list of glob patterns to include/exclude source code files in ``llms_txt_full_filename``.
      Code files are added at the end of the documentation with syntax highlighting.
      Patterns are resolved relative to the Sphinx source directory.
+
+     Supports include/exclude syntax:
+
+     - ``+:pattern`` - Include files matching the pattern
+     - ``-:pattern`` - Exclude files matching the pattern
+     - ``pattern`` (no prefix) - Ignored (no special handling)
+
+     Example: ``['+:docs/**/*.rst', '-:docs/**/__pycache__/**', '-:docs/**/*.bak']``
+     includes all RST files in docs/ but excludes cache files and backups.
 
    .. versionadded:: 0.4.0
 
