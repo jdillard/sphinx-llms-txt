@@ -241,6 +241,5 @@ Here's a complete example showing multiple :doc:`configuration-values`:
        "+:../../src/**/*.py",           # Include Python files
        "+:../../config/*.yaml",         # Include config files
        "-:../../src/**/__pycache__/**", # Exclude cache files
-       "-:../../**/*.bak",              # Exclude backup files
    ]
    llms_txt_code_base_path = "../../"

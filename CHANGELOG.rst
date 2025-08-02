@@ -4,7 +4,7 @@ Changelog
 0.4.0
 -----
 
-- Add support for including source code files with ``llms_txt_code_files`` and ``llms_txt_code_base_path`` configuration options
+- Add support for including source code files with :confval:`llms_txt_code_files` and :confval:`llms_txt_code_base_path` configuration options
   `#24 <https://github.com/jdillard/sphinx-llms-txt/pull/24>`_
 
 0.3.1
