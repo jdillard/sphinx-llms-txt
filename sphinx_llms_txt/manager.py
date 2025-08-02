@@ -530,7 +530,12 @@ class LLMSFullManager:
                 exclude_patterns.append(pattern[2:])  # Remove the '-:' prefix
             elif pattern.startswith("+:"):
                 include_patterns.append(pattern[2:])  # Remove the '+:' prefix
-            # No prefix = ignore pattern (no special handling)
+            else:
+                # No prefix = log warning about ignored pattern
+                logger.warning(
+                    f"sphinx-llms-txt: Code file pattern '{pattern}' ignored. "
+                    f"Use '+:{pattern}' to include or '-:{pattern}' to exclude."
+                )
 
         # If no include patterns specified, nothing to process
         if not include_patterns:

@@ -943,8 +943,8 @@ def test_code_files_no_prefix_patterns(tmp_path):
     assert "backup.bak" not in content
 
 
-def test_code_files_ignored_patterns(tmp_path):
-    """Test that patterns without +: or -: prefix are completely ignored."""
+def test_code_files_ignored_patterns(tmp_path, caplog):
+    """Test that patterns without +: or -: prefix log a warning and are ignored."""
     from sphinx_llms_txt.manager import LLMSFullManager
 
     # Create test directory structure
@@ -964,7 +964,7 @@ def test_code_files_ignored_patterns(tmp_path):
     # Test configuration with only no-prefix patterns (should result in no files)
     config = {
         "llms_txt_code_files": [
-            "docs/**/*.rst",  # No prefix = ignored
+            "docs/**/*.rst",  # No prefix = ignored with warning
         ]
     }
     manager.set_config(config)
@@ -976,3 +976,10 @@ def test_code_files_ignored_patterns(tmp_path):
     assert (
         len(code_parts) == 0
     ), "Should have no files when only using patterns without prefix"
+
+    # Check that a warning was logged
+    assert any(
+        "Code file pattern 'docs/**/*.rst' ignored" in record.message
+        for record in caplog.records
+        if record.levelname == "WARNING"
+    ), "Should log a warning for patterns without prefix"
