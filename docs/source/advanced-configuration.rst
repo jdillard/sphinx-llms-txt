@@ -125,6 +125,54 @@ You can exclude specific pages from being included in the generated files:
 
 This is useful for excluding auto-generated pages, indexes, or content that isn't relevant for LLM consumption.
 
+.. _including_code_files:
+
+Including Source Code Files
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+You can include source code files from your project in the full documentation file.
+Code files are added at the end of the documentation with proper syntax highlighting.
+
+Use include/exclude syntax to precisely control which files are included:
+
+.. code-block:: python
+
+   llms_txt_code_files = [
+       "+:src/**/*.py",           # Include all Python files in src
+       "-:src/**/__pycache__/**", # Exclude Python cache files
+   ]
+
+Pattern syntax:
+
+- **+:pattern**: Include files matching the pattern
+- **-:pattern**: Exclude files matching the pattern
+
+Code files are processed as follows:
+
+- **Glob patterns**: Use standard glob patterns (``*``, ``**``, ``?``) to match files
+- **Include patterns**: (``+:``) are processed first to collect matching files
+- **Exclude patterns**: (``-:``) are then applied to filter out unwanted files
+- **Relative paths**: Patterns are resolved relative to your Sphinx source directory
+- **Automatic detection**: File language is detected from the extension for syntax highlighting
+- **Formatting**: Each file is presented with a title and syntax-highlighted code block
+
+.. _customizing_code_paths:
+
+Customizing Code File Paths
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the extension automatically detects the relative path from your Sphinx source directory to the git root and strips that prefix from displayed file paths. You can customize this behavior:
+
+.. code-block:: python
+
+   # Manually specify base path to strip
+   llms_txt_code_base_path = "../../"
+
+   # Disable path stripping entirely
+   llms_txt_code_base_path = ""
+
+This helps create cleaner, more readable file paths in the generated documentation.
+
 .. _using_html_baseurl:
 
 Using HTML Base URL
@@ -168,3 +216,11 @@ Here's a complete example showing multiple :doc:`configuration-values`:
 
    # Content filtering
    llms_txt_exclude = ["search", "genindex", "404", "private_*"]
+
+   # Source code inclusion with include/exclude patterns
+   llms_txt_code_files = [
+       "+:../../src/**/*.py",           # Include Python files
+       "+:../../config/*.yaml",         # Include config files
+       "-:../../src/**/__pycache__/**", # Exclude cache files
+   ]
+   llms_txt_code_base_path = "../../"
