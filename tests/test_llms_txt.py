@@ -979,7 +979,7 @@ def test_code_files_ignored_patterns(tmp_path, caplog):
 
     # Check that a warning was logged
     assert any(
-        "Code file pattern 'docs/**/*.rst' ignored" in record.message
+        "Code file pattern 'docs/**/*.rst' ignored." in record.message
         for record in caplog.records
         if record.levelname == "WARNING"
     ), "Should log a warning for patterns without prefix"

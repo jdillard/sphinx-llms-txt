@@ -533,7 +533,7 @@ class LLMSFullManager:
             else:
                 # No prefix = log warning about ignored pattern
                 logger.warning(
-                    f"sphinx-llms-txt: Code file pattern '{pattern}' ignored. "
+                    f"sphinx-llms-txt: Code file pattern '{pattern}' ignored."
                     f"Use '+:{pattern}' to include or '-:{pattern}' to exclude."
                 )
 
