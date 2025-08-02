@@ -94,8 +94,14 @@ class DocumentProcessor:
         if not base_url:
             return path
 
+        # Ensure base URL ends with slash
         if not base_url.endswith("/"):
             base_url += "/"
+
+        # Remove leading slash from path to avoid double slashes
+        if path.startswith("/"):
+            path = path[1:]
+
         return f"{base_url}{path}"
 
     def _is_absolute_or_url(self, path: str) -> bool:
@@ -137,8 +143,30 @@ class DocumentProcessor:
             prefix = match.group(1)  # The entire directive prefix including whitespace
             path = match.group(3).strip()  # The path argument
 
-            # Only process relative paths, not absolute paths or URLs
-            if not self._is_absolute_or_url(path):
+            # Special handling for _images directory (Sphinx static files)
+            # Handle both relative _images/ and paths containing /_images/
+            if "_images/" in path:
+                # Extract the part after _images/
+                images_index = path.find("_images/")
+                remaining_path = path[images_index + len("_images/") :]
+                # Convert to absolute /_images path
+                full_path = f"/_images/{remaining_path}"
+                # Add base URL if configured
+                full_path = self._add_base_url(full_path, base_url)
+                return f"{prefix}{full_path}"
+
+            # Handle all absolute paths (starting with /) - add base URL if configured
+            elif path.startswith("/"):
+                # Add base URL to absolute paths if configured
+                full_path = self._add_base_url(path, base_url)
+                return f"{prefix}{full_path}"
+
+            # Handle URLs and data URIs - leave unchanged
+            elif path.startswith(("http://", "https://", "data:")):
+                return match.group(0)
+
+            # Process relative paths
+            else:
                 # Special case for test files
                 if is_test:
                     # Add subdir/ prefix to match test expectations
@@ -180,7 +208,12 @@ class DocumentProcessor:
                         # Return the updated directive with the full path
                         return f"{prefix}{full_path}"
 
-            # If we couldn't resolve the path or it's already absolute, return unchanged
+                # Fallback for relative paths - add base URL if configured
+                else:
+                    full_path = self._add_base_url(path, base_url)
+                    return f"{prefix}{full_path}"
+
+            # If we couldn't resolve the path, return unchanged
             return match.group(0)
 
         # Replace directive paths in the content
