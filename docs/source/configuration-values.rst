@@ -87,7 +87,7 @@ Project Configuration Values
 
    - **Type**: list of strings
    - **Default**: ``[]``
-   - **Description**: A list of glob patterns to include/exclude source code files in :confval:`llms_txt_full_filename`.
+   - **Description**: A list of glob patterns that appends source code files to :confval:`llms_txt_full_filename`.
      See :ref:`including_code_files`.
 
    .. versionadded:: 0.4.0
