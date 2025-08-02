@@ -131,30 +131,9 @@ Including Source Code Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 You can include source code files from your project in the full documentation file.
-Code files are added at the end of the documentation with proper syntax highlighting:
+Code files are added at the end of the documentation with proper syntax highlighting.
 
-.. code-block:: python
-
-   llms_txt_code_files = [
-       "../../src/**/*.py",  # Include all Python files in src
-       "../../lib/*.js",     # Include JavaScript files in lib
-       "../../config.yaml",  # Include specific config file
-   ]
-
-Code files are processed as follows:
-
-- **Glob patterns**: Use standard glob patterns (``*``, ``**``, ``?``) to match files
-- **Recursive matching**: Use ``**`` for recursive directory matching
-- **Relative paths**: Patterns are resolved relative to your Sphinx source directory
-- **Automatic detection**: File language is detected from the extension for syntax highlighting
-- **Formatting**: Each file is presented with a bordered title and syntax-highlighted code block
-
-.. _include_exclude_syntax:
-
-Include/Exclude Pattern Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can use include/exclude syntax to precisely control which files are included:
+Use include/exclude syntax to precisely control which files are included:
 
 .. code-block:: python
 
@@ -168,12 +147,14 @@ Pattern syntax:
 - **+:pattern**: Include files matching the pattern
 - **-:pattern**: Exclude files matching the pattern
 
-Processing order:
+Code files are processed as follows:
 
-1. All include patterns (``+:``) are processed first to collect matching files
-2. Exclude patterns (``-:``) are then applied to filter out unwanted files
-
-.. tip:: Use include/exclude patterns to avoid adding temporary files, cache directories, or backup files to your documentation.
+- **Glob patterns**: Use standard glob patterns (``*``, ``**``, ``?``) to match files
+- **Include patterns**: (``+:``) are processed first to collect matching files
+- **Exclude patterns**: (``-:``) are then applied to filter out unwanted files
+- **Relative paths**: Patterns are resolved relative to your Sphinx source directory
+- **Automatic detection**: File language is detected from the extension for syntax highlighting
+- **Formatting**: Each file is presented with a title and syntax-highlighted code block
 
 .. _customizing_code_paths:
 
