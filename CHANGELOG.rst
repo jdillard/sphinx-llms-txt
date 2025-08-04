@@ -4,7 +4,7 @@ Changelog
 0.3.2
 -----
 
-- Fix image paths that contain ``_images``
+- Fix image paths to deployed images
   `#30 <https://github.com/jdillard/sphinx-llms-txt/pull/30>`_
 
 
