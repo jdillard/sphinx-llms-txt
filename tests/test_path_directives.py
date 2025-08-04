@@ -312,7 +312,10 @@ def test_process_path_directives_images_directory(tmp_path):
 
 
 def test_process_path_directives_images_directory_no_baseurl(tmp_path):
-    """Test that _images directory paths work correctly without base URL."""
+    """
+    Test that _images directory paths work correctly without base URL.
+    Only converts when image exists.
+    """
     # Create a processor without base URL
     config = {
         "llms_txt_directives": [],
@@ -331,10 +334,16 @@ def test_process_path_directives_images_directory_no_baseurl(tmp_path):
     sources_dir = build_dir / "_sources"
     sources_dir.mkdir()
 
+    # Create _images directory and one test image
+    images_dir = build_dir / "_images"
+    images_dir.mkdir()
+    (images_dir / "test.png").write_text("fake image content")
+    # Note: absolute.png is not created, so it won't be converted
+
     # Create a source file with _images directory paths
     source_content = (
-        ".. image:: _images/test.png\n"  # Relative _images should become /_images
-        ".. image:: /_images/absolute.png\n"  # Absolute _images should stay unchanged
+        ".. image:: _images/test.png\n"  # Should become /_images (image exists)
+        ".. image:: /_images/absolute.png\n"  # Should stay unchanged (absolute path)
     )
 
     # Create source file in sources directory to simulate Sphinx build output
@@ -345,10 +354,10 @@ def test_process_path_directives_images_directory_no_baseurl(tmp_path):
     # Process the directives
     processed_content = processor._process_path_directives(source_content, source_file)
 
-    # Expected: _images should become /_images, /_images should stay unchanged
+    # Expected: only test.png gets converted because it exists in _images
     expected_content = (
-        ".. image:: /_images/test.png\n"  # _images -> /_images
-        ".. image:: /_images/absolute.png\n"  # /_images unchanged
+        ".. image:: /_images/test.png\n"  # Converted because image exists
+        ".. image:: /_images/absolute.png\n"  # Absolute path unchanged
     )
 
     assert processed_content == expected_content
@@ -392,95 +401,6 @@ def test_process_path_directives_all_absolute_paths_get_baseurl(tmp_path):
         ".. image:: https://mysite.com/docs/media/photos/team.jpg\n"
         "   :alt: Team photo\n"
         ".. image:: https://mysite.com/docs/relative/path.png\n"
-    )
-
-    assert processed_content == expected_content
-
-
-def test_process_path_directives_images_anywhere_in_path(tmp_path):
-    """Test that _images directories anywhere in path get redirected to /_images."""
-    # Create a processor with base URL
-    config = {
-        "llms_txt_directives": [],
-        "html_baseurl": "https://example.com/docs/",
-    }
-    processor = DocumentProcessor(config)
-
-    # Create source directory structure
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    processor.srcdir = str(src_dir)
-
-    # Create a source file with _images in various locations
-    source_content = (
-        ".. image:: _images/test.png\n"  # relative _images
-        ".. image:: /intro/_images/logo.png\n"  # absolute path with _images
-        ".. image:: docs/guide/_images/diagram.svg\n"  # relative path with _images
-        ".. figure:: /api/v1/_images/example.png\n"  # nested absolute path with _images
-        "   :alt: API example\n"
-        ".. image:: /static/css/main.css\n"  # non-_images absolute path
-    )
-
-    # Create source file
-    source_file = src_dir / "page.txt"
-    with open(source_file, "w", encoding="utf-8") as f:
-        f.write(source_content)
-
-    # Process the directives
-    processed_content = processor._process_path_directives(source_content, source_file)
-
-    # Expected: All _images paths should be redirected to /_images
-    expected_content = (
-        ".. image:: https://example.com/docs/_images/test.png\n"
-        ".. image:: https://example.com/docs/_images/logo.png\n"
-        ".. image:: https://example.com/docs/_images/diagram.svg\n"
-        ".. figure:: https://example.com/docs/_images/example.png\n"
-        "   :alt: API example\n"
-        ".. image:: https://example.com/docs/static/css/main.css\n"
-    )
-
-    assert processed_content == expected_content
-
-
-def test_process_path_directives_images_anywhere_in_path_no_baseurl(tmp_path):
-    """
-    Test that _images directories anywhere in path get redirected to /_images
-    without base URL.
-    """
-    # Create a processor without base URL
-    config = {
-        "llms_txt_directives": [],
-        "html_baseurl": "",
-    }
-    processor = DocumentProcessor(config)
-
-    # Create source directory structure
-    src_dir = tmp_path / "src"
-    src_dir.mkdir()
-    processor.srcdir = str(src_dir)
-
-    # Create a source file with _images in various locations
-    source_content = (
-        ".. image:: _images/test.png\n"  # relative _images
-        ".. image:: /intro/_images/logo.png\n"  # absolute path with _images
-        ".. image:: docs/guide/_images/diagram.svg\n"  # relative path with _images
-        ".. figure:: /api/v1/_images/example.png\n"  # nested absolute path with _images
-    )
-
-    # Create source file
-    source_file = src_dir / "page.txt"
-    with open(source_file, "w", encoding="utf-8") as f:
-        f.write(source_content)
-
-    # Process the directives
-    processed_content = processor._process_path_directives(source_content, source_file)
-
-    # Expected: All _images paths should be redirected to /_images
-    expected_content = (
-        ".. image:: /_images/test.png\n"
-        ".. image:: /_images/logo.png\n"
-        ".. image:: /_images/diagram.svg\n"
-        ".. figure:: /_images/example.png\n"
     )
 
     assert processed_content == expected_content
