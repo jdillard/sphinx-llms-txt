@@ -945,6 +945,8 @@ def test_code_files_no_prefix_patterns(tmp_path):
 
 def test_code_files_ignored_patterns(tmp_path, caplog):
     """Test that patterns without +: or -: prefix log a warning and are ignored."""
+    from unittest.mock import patch
+
     from sphinx_llms_txt.manager import LLMSFullManager
 
     # Create test directory structure
@@ -957,20 +959,28 @@ def test_code_files_ignored_patterns(tmp_path, caplog):
     # Create test files
     (docs_dir / "example.rst").write_text("Example RST content")
 
-    # Create manager and set source directory
-    manager = LLMSFullManager()
-    manager.srcdir = str(src_dir)
+    # Use a mock to capture the warning message directly
+    captured_warnings = []
 
-    # Test configuration with only no-prefix patterns (should result in no files)
-    config = {
-        "llms_txt_code_files": [
-            "docs/**/*.rst",  # No prefix = ignored with warning
-        ]
-    }
-    manager.set_config(config)
+    def capture_warning(message, *args, **kwargs):
+        captured_warnings.append(message)
 
-    # Process code files
-    code_parts = manager._process_code_files()
+    # Patch the logger to capture warnings
+    with patch("sphinx_llms_txt.manager.logger.warning", side_effect=capture_warning):
+        # Create manager and set source directory
+        manager = LLMSFullManager()
+        manager.srcdir = str(src_dir)
+
+        # Test configuration with only no-prefix patterns (should result in no files)
+        config = {
+            "llms_txt_code_files": [
+                "docs/**/*.rst",  # No prefix = ignored with warning
+            ]
+        }
+        manager.set_config(config)
+
+        # Process code files
+        code_parts = manager._process_code_files()
 
     # Should have no files since the pattern without prefix is ignored
     assert (
@@ -978,8 +988,9 @@ def test_code_files_ignored_patterns(tmp_path, caplog):
     ), "Should have no files when only using patterns without prefix"
 
     # Check that a warning was logged
-    assert any(
-        "Code file pattern 'docs/**/*.rst' ignored." in record.message
-        for record in caplog.records
-        if record.levelname == "WARNING"
-    ), "Should log a warning for patterns without prefix"
+    assert (
+        len(captured_warnings) == 1
+    ), f"Expected 1 warning, got {len(captured_warnings)}"
+    assert (
+        "Code file pattern 'docs/**/*.rst' ignored." in captured_warnings[0]
+    ), f"Warning message should contain expected text. Got: {captured_warnings[0]}"
