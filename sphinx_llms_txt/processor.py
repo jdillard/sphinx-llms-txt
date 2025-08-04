@@ -94,8 +94,14 @@ class DocumentProcessor:
         if not base_url:
             return path
 
+        # Ensure base URL ends with slash
         if not base_url.endswith("/"):
             base_url += "/"
+
+        # Remove leading slash from path to avoid double slashes
+        if path.startswith("/"):
+            path = path[1:]
+
         return f"{base_url}{path}"
 
     def _is_absolute_or_url(self, path: str) -> bool:
@@ -137,12 +143,73 @@ class DocumentProcessor:
             prefix = match.group(1)  # The entire directive prefix including whitespace
             path = match.group(3).strip()  # The path argument
 
-            # Only process relative paths, not absolute paths or URLs
-            if not self._is_absolute_or_url(path):
-                # Special case for test files
-                if is_test:
-                    # Add subdir/ prefix to match test expectations
-                    full_path = "subdir/" + path
+            # Handle URLs and data URIs - leave unchanged
+            if path.startswith(("http://", "https://", "data:")):
+                return match.group(0)
+
+            # For ALL paths, check if image exists in _images first
+            # Extract filename from the path
+            filename = os.path.basename(path)
+
+            # Check if image exists in _images directory
+            # First determine the build directory from source_path
+            build_dir = None
+            if "_sources" in str(source_path):
+                # Extract build directory (parent of _sources)
+                path_parts = str(source_path).split("_sources/")
+                if len(path_parts) > 1:
+                    build_dir = path_parts[0].rstrip("/")
+
+            # If we can determine the build directory, check if image exists in _images
+            if build_dir:
+                images_path = os.path.join(build_dir, "_images", filename)
+                if os.path.exists(images_path):
+                    # Image exists in _images, use _images path
+                    full_path = f"/_images/{filename}"
+                    # Add base URL if configured
+                    full_path = self._add_base_url(full_path, base_url)
+                    return f"{prefix}{full_path}"
+
+            # Image doesn't exist in _images, handle based on path type
+            # Handle absolute paths (starting with /) - add base URL if configured
+            if path.startswith("/"):
+                # Add base URL to absolute paths if configured
+                full_path = self._add_base_url(path, base_url)
+                return f"{prefix}{full_path}"
+
+            # Handle relative paths with original logic for backward compatibility
+            # Special case for test files
+            if is_test:
+                # Add subdir/ prefix to match test expectations
+                full_path = "subdir/" + path
+
+                # If base_url is set, prepend it to the path
+                full_path = self._add_base_url(full_path, base_url)
+
+                # Return the updated directive with the full path
+                return f"{prefix}{full_path}"
+
+            # Production case (not in test)
+            elif "_sources" in str(source_path):
+                # Extract the part after _sources/
+                rel_doc_path, rel_doc_dir, rel_doc_path_parts = (
+                    self._extract_relative_document_path(source_path)
+                )
+
+                if rel_doc_path_parts:
+                    # For test subdirectory handling - this is for our test cases
+                    if (
+                        len(rel_doc_path_parts) > 0
+                        and rel_doc_path_parts[0] == "subdir"
+                    ):
+                        full_path = os.path.normpath(os.path.join("subdir", path))
+                    # Only add the rel_doc_dir if it's not empty
+                    elif rel_doc_dir:
+                        # Join with the original path to form full path relative
+                        # to srcdir
+                        full_path = os.path.normpath(os.path.join(rel_doc_dir, path))
+                    else:
+                        full_path = path
 
                     # If base_url is set, prepend it to the path
                     full_path = self._add_base_url(full_path, base_url)
@@ -150,37 +217,12 @@ class DocumentProcessor:
                     # Return the updated directive with the full path
                     return f"{prefix}{full_path}"
 
-                # Production case (not in test)
-                elif "_sources" in str(source_path):
-                    # Extract the part after _sources/
-                    rel_doc_path, rel_doc_dir, rel_doc_path_parts = (
-                        self._extract_relative_document_path(source_path)
-                    )
+            # Fallback for relative paths - add base URL if configured
+            else:
+                full_path = self._add_base_url(path, base_url)
+                return f"{prefix}{full_path}"
 
-                    if rel_doc_path_parts:
-                        # For test subdirectory handling - this is for our test cases
-                        if (
-                            len(rel_doc_path_parts) > 0
-                            and rel_doc_path_parts[0] == "subdir"
-                        ):
-                            full_path = os.path.normpath(os.path.join("subdir", path))
-                        # Only add the rel_doc_dir if it's not empty
-                        elif rel_doc_dir:
-                            # Join with the original path to form full path relative
-                            # to srcdir
-                            full_path = os.path.normpath(
-                                os.path.join(rel_doc_dir, path)
-                            )
-                        else:
-                            full_path = path
-
-                        # If base_url is set, prepend it to the path
-                        full_path = self._add_base_url(full_path, base_url)
-
-                        # Return the updated directive with the full path
-                        return f"{prefix}{full_path}"
-
-            # If we couldn't resolve the path or it's already absolute, return unchanged
+            # If we couldn't resolve the path, return unchanged
             return match.group(0)
 
         # Replace directive paths in the content
