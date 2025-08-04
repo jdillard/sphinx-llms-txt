@@ -130,8 +130,7 @@ This is useful for excluding auto-generated pages, indexes, or content that isn'
 Including Source Code Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-You can include source code files from your project in the full documentation file.
-Code files are added at the end of the documentation with proper syntax highlighting.
+You can include source code files from your project at the end of :confval:`llms_txt_full_filename`.
 
 Use include/exclude syntax to precisely control which files are included:
 
@@ -144,16 +143,13 @@ Use include/exclude syntax to precisely control which files are included:
 
 Pattern syntax:
 
-- **+:pattern**: Include files matching the pattern
-- **-:pattern**: Exclude files matching the pattern
+- **+:pattern**: Include files matching the pattern. Processed first to collect matching files.
+- **-:pattern**: Exclude files matching the pattern. Applied to filter out unwanted files.
 
 Code files are processed as follows:
 
 - **Glob patterns**: Use standard glob patterns (``*``, ``**``, ``?``) to match files
-- **Include patterns**: (``+:``) are processed first to collect matching files
-- **Exclude patterns**: (``-:``) are then applied to filter out unwanted files
 - **Relative paths**: Patterns are resolved relative to your Sphinx source directory
-- **Automatic detection**: File language is detected from the extension for syntax highlighting
 - **Formatting**: Each file is presented with a title and syntax-highlighted code block
 
 .. _customizing_code_paths:
