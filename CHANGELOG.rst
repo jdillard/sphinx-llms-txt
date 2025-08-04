@@ -1,6 +1,13 @@
 Changelog
 =========
 
+0.3.2
+-----
+
+- Fix image paths to deployed images
+  `#30 <https://github.com/jdillard/sphinx-llms-txt/pull/30>`_
+
+
 0.3.1
 -----
 
