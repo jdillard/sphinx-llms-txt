@@ -243,9 +243,12 @@ class DocumentProcessor:
         """
         possible_paths = []
 
-        # If it's an absolute path, use it directly
+        # If it's an absolute path, treat it as relative to srcdir
         if os.path.isabs(include_path):
-            possible_paths.append(Path(include_path))
+            # Remove the leading slash and treat as relative to srcdir
+            relative_path = include_path.lstrip("/")
+            if self.srcdir:
+                possible_paths.append((Path(self.srcdir) / relative_path).resolve())
         else:
             # Relative to the source file (in _sources directory)
             possible_paths.append((source_path.parent / include_path).resolve())

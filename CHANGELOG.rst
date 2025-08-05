@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.1
+-----
+
+- Fix include paths
+
 0.4.0
 -----
 
