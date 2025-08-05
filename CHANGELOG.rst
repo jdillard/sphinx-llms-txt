@@ -4,7 +4,7 @@ Changelog
 0.4.1
 -----
 
-- Fix include paths
+- Fix include paths and spacing
   `#31 <https://github.com/jdillard/sphinx-llms-txt/pull/31>`_
 
 0.4.0
