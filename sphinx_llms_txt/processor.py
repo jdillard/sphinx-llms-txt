@@ -243,9 +243,12 @@ class DocumentProcessor:
         """
         possible_paths = []
 
-        # If it's an absolute path, use it directly
+        # If it's an absolute path, treat it as relative to srcdir
         if os.path.isabs(include_path):
-            possible_paths.append(Path(include_path))
+            # Remove the leading slash and treat as relative to srcdir
+            relative_path = include_path.lstrip("/")
+            if self.srcdir:
+                possible_paths.append((Path(self.srcdir) / relative_path).resolve())
         else:
             # Relative to the source file (in _sources directory)
             possible_paths.append((source_path.parent / include_path).resolve())
@@ -286,6 +289,9 @@ class DocumentProcessor:
         # Function to replace each include with content
         def replace_include(match):
             include_path = match.group(3)
+            directive_part = match.group(
+                1
+            )  # The ".. include:: " part with leading whitespace
 
             # Get all possible paths to try
             possible_paths = self._resolve_include_paths(include_path, source_path)
@@ -296,7 +302,18 @@ class DocumentProcessor:
                     if path_to_try.exists():
                         with open(path_to_try, "r", encoding="utf-8") as f:
                             included_content = f.read()
-                        return included_content
+
+                        # Find where the actual directive starts, after any whitespace
+                        directive_start = directive_part.find("..")
+                        if directive_start > 0:
+                            # There's leading whitespace/newlines before the directive
+                            leading_part = directive_part[:directive_start]
+                            # Replace directive with content, preserving the structure
+                            return leading_part + included_content
+                        else:
+                            # No leading whitespace, just return the content
+                            return included_content
+
                 except Exception as e:
                     logger.error(
                         f"sphinx-llms-txt: Error reading include file {path_to_try}:"
@@ -308,7 +325,14 @@ class DocumentProcessor:
             paths_tried = ", ".join(str(p) for p in possible_paths)
             logger.warning(f"sphinx-llms-txt: Include file not found: {include_path}")
             logger.debug(f"sphinx-llms-txt: Tried paths: {paths_tried}")
-            return f"[Include file not found: {include_path}]"
+
+            # Preserve spacing structure for error message too
+            directive_start = match.group(1).find("..")
+            if directive_start > 0:
+                leading_part = match.group(1)[:directive_start]
+                return leading_part + f"[Include file not found: {include_path}]"
+            else:
+                return f"[Include file not found: {include_path}]"
 
         # Replace all includes with their content
         processed_content = include_pattern.sub(replace_include, content)
