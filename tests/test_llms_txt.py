@@ -847,7 +847,7 @@ def test_code_files_include_exclude_patterns(tmp_path):
     manager.set_config(config)
 
     # Process code files
-    code_parts = manager._process_code_files()
+    code_parts, _ = manager._process_code_files()
 
     # Verify we have the expected number of files
     assert len(code_parts) == 2, f"Expected 2 files, got {len(code_parts)}"
@@ -897,7 +897,7 @@ def test_code_files_exclude_only_patterns(tmp_path):
     manager.set_config(config)
 
     # Process code files
-    code_parts = manager._process_code_files()
+    code_parts, _ = manager._process_code_files()
 
     # Should have no files with exclude-only patterns
     assert len(code_parts) == 0, "Should have no files with exclude-only patterns"
@@ -933,7 +933,7 @@ def test_code_files_no_prefix_patterns(tmp_path):
     manager.set_config(config)
 
     # Process code files
-    code_parts = manager._process_code_files()
+    code_parts, _ = manager._process_code_files()
 
     # Should include RST files (from +: pattern) and exclude BAK files (from -: pattern)
     assert len(code_parts) == 1, "Should include RST files and exclude BAK files"
@@ -980,7 +980,7 @@ def test_code_files_ignored_patterns(tmp_path, caplog):
         manager.set_config(config)
 
         # Process code files
-        code_parts = manager._process_code_files()
+        code_parts, _ = manager._process_code_files()
 
     # Should have no files since the pattern without prefix is ignored
     assert (

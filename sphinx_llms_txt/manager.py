@@ -385,7 +385,7 @@ class LLMSFullManager:
 
         # Process code files at the end if configured
         if not abort_due_to_max_lines:
-            code_file_parts = self._process_code_files()
+            code_file_parts, processed_file_paths = self._process_code_files()
             code_files_line_count = sum(
                 part.count("\n") + 1 for part in code_file_parts
             )
@@ -404,7 +404,9 @@ class LLMSFullManager:
             else:
                 # Add source code files section if there are any code files
                 if code_file_parts:
-                    section_header = self._create_code_files_section_header()
+                    section_header = self._create_code_files_section_header(
+                        processed_file_paths
+                    )
                     content_parts.append(section_header)
                     content_parts.extend(code_file_parts)
                     # Add line count for the section header too
@@ -506,7 +508,7 @@ class LLMSFullManager:
         else:
             return [source_suffix]  # String format
 
-    def _process_code_files(self) -> List[str]:
+    def _process_code_files(self) -> Tuple[List[str], List[Path]]:
         """Process code files specified in llms_txt_code_files configuration.
 
         Supports include/exclude patterns with +:/- : prefixes:
@@ -515,11 +517,11 @@ class LLMSFullManager:
         - 'pattern' (no prefix) = ignored (no special handling)
 
         Returns:
-            List of formatted code block strings
+            Tuple of (formatted code block strings, list of processed file paths)
         """
         code_file_patterns = self.config.get("llms_txt_code_files", [])
         if not code_file_patterns:
-            return []
+            return [], []
 
         # Parse patterns into include and exclude lists
         include_patterns = []
@@ -539,7 +541,7 @@ class LLMSFullManager:
 
         # If no include patterns specified, nothing to process
         if not include_patterns:
-            return []
+            return [], []
 
         code_parts = []
         processed_files = set()
@@ -668,21 +670,146 @@ class LLMSFullManager:
                 )
                 continue
 
-        return code_parts
+        return code_parts, sorted(processed_files)
 
-    def _create_code_files_section_header(self) -> str:
+    def _create_code_files_section_header(self, file_paths: List[Path] = None) -> str:
         """Create the section header for source code files.
 
+        Args:
+            file_paths: List of file paths that were added to generate tree view
+
         Returns:
-            String containing the section header with title, underlines, and description
+            String containing the section header with title, underlines, description,
+            and file tree
         """
         section_title = "Source Code Files"
         star_line = "*" * len(section_title)
+
+        description = "This section contains source code files from the project repository. These files are included to provide implementation context and technical details that complement the documentation above."  # noqa: E501
 
         header = f"""
 {star_line}
 {section_title}
 {star_line}
 
-This section contains source code files from the project repository. These files are included to provide implementation context and technical details that complement the documentation above."""  # noqa: E501
+{description}"""
+
+        # Add file tree if file paths are provided
+        if file_paths:
+            tree_display = self._generate_file_tree(file_paths)
+            header += f"""
+
+**Files included:**
+
+.. code-block:: text
+
+{tree_display}"""
+
         return header
+
+    def _generate_file_tree(self, file_paths: List[Path]) -> str:
+        """Generate a tree-like representation of file paths.
+
+        Args:
+            file_paths: List of file paths to display in tree format
+
+        Returns:
+            String containing indented tree representation of the files
+        """
+        if not file_paths:
+            return ""
+
+        # Convert to relative paths if possible and create tree structure
+        tree_data = {}
+
+        for file_path in sorted(file_paths):
+            # Get relative path from source directory for display
+            if self.srcdir:
+                try:
+                    rel_path = file_path.relative_to(Path(self.srcdir))
+
+                    # Apply base path stripping logic similar to code processing
+                    base_path = self.config.get("llms_txt_code_base_path")
+                    if base_path is None:
+                        # Auto-detect: try to make path relative to git root
+                        git_root = _get_git_root(Path(self.srcdir))
+                        if git_root:
+                            try:
+                                # Get srcdir relative to git root
+                                srcdir_relative = Path(self.srcdir).relative_to(
+                                    git_root
+                                )
+                                # Calculate relative path from srcdir to git root
+                                if srcdir_relative != Path("."):
+                                    # Count directory levels to go up
+                                    up_levels = len(srcdir_relative.parts)
+                                    base_path = "../" * up_levels
+                                else:
+                                    base_path = None
+                            except ValueError:
+                                base_path = None
+
+                    if base_path:
+                        rel_path_str = str(rel_path)
+                        if rel_path_str.startswith(base_path):
+                            rel_path = Path(rel_path_str[len(base_path) :])
+
+                except ValueError:
+                    # File is not relative to srcdir, use filename
+                    rel_path = Path(file_path.name)
+            else:
+                rel_path = Path(file_path.name)
+
+            # Build nested dictionary structure
+            parts = rel_path.parts
+            current = tree_data
+            for part in parts[:-1]:  # All but the last part (directories)
+                if part not in current:
+                    current[part] = {}
+                current = current[part]
+
+            # Add the file (last part)
+            if parts:
+                current[parts[-1]] = None  # None indicates it's a file
+
+        # Convert tree structure to string representation
+        lines = []
+        self._format_tree_node(tree_data, lines, "", True)
+
+        # Indent each line for reStructuredText code block
+        indented_lines = [f"   {line}" for line in lines]
+        return "\n".join(indented_lines)
+
+    def _format_tree_node(
+        self, node: dict, lines: List[str], prefix: str, is_root: bool
+    ):
+        """Recursively format tree nodes into lines with proper tree characters.
+
+        Args:
+            node: Dictionary representing the tree structure
+            lines: List to append formatted lines to
+            prefix: Current prefix for indentation and tree characters
+            is_root: Whether this is the root level (no tree characters)
+        """
+        if not node:
+            return
+
+        items = sorted(node.items())
+
+        for i, (name, subtree) in enumerate(items):
+            is_last = i == len(items) - 1
+
+            if is_root:
+                # Root level - no tree characters
+                current_prefix = ""
+                next_prefix = ""
+            else:
+                # Use tree characters
+                current_prefix = prefix + ("└── " if is_last else "├── ")
+                next_prefix = prefix + ("    " if is_last else "│   ")
+
+            lines.append(current_prefix + name)
+
+            # Recursively handle subdirectories
+            if subtree is not None:  # It's a directory
+                self._format_tree_node(subtree, lines, next_prefix, False)
