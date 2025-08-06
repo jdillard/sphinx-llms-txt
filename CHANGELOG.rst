@@ -4,8 +4,8 @@ Changelog
 0.5.0
 -----
 
-- Add :ref:`block_level_ignore`
-- Add :ref:`page_level_ignore`
+- Add :ref:`block_level_ignore` and :ref:`page_level_ignore`
+  `#33 <https://github.com/jdillard/sphinx-llms-txt/pull/33>`_
 
 0.4.1
 -----
