@@ -5,6 +5,25 @@ A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Mar
 
 |PyPI version| |Conda Version| |Downloads| |Parallel Safe| |GitHub Stars|
 
+Features
+---------
+
+1. **Content Collection**: Quickly gathers content from _sources, without needing a separate build
+2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
+3. **Path Resolution**: Transforms relative paths in directives to full paths
+4. **Output Generation**: Creates two optional files:
+
+   - ``llms.txt``: A concise summary of your documentation, in Markdown
+   - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText
+
+5. **Content Filtering**: Allows you to exclude specific pages or sections
+6. **Source Code**: Allows you to include specific source code files
+
+Demo
+----
+
+You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
+
 .. toctree::
    :maxdepth: 2
 
@@ -15,6 +34,8 @@ A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Mar
    changelog
 
 
+.. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt
+.. _llms-full.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms-full.txt
 .. _Sphinx: http://sphinx-doc.org/
 
 .. |PyPI version| image:: https://img.shields.io/pypi/v/sphinx-llms-txt.svg
