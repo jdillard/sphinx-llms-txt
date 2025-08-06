@@ -5,6 +5,11 @@ A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Mar
 
 |PyPI version| |Conda Version| |Downloads| |Parallel Safe| |GitHub Stars|
 
+Demo
+----
+
+You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
+
 Features
 ---------
 
@@ -18,11 +23,6 @@ Features
 
 5. **Content Filtering**: Allows you to exclude specific pages or sections
 6. **Source Code**: Allows you to include specific source code files
-
-Demo
-----
-
-You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
 
 .. toctree::
    :maxdepth: 2
