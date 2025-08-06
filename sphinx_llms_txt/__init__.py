@@ -33,6 +33,13 @@ def doctree_resolved(app: Sphinx, doctree, docname: str):
     """Called when a docname has been resolved to a document."""
     global _root_first_paragraph
 
+    # Check for llms-txt-ignore metadata at the page level
+    if hasattr(app.env, "metadata") and docname in app.env.metadata:
+        metadata = app.env.metadata[docname]
+        if metadata.get("llms-txt-ignore", "").lower() in ("true", "1", "yes"):
+            _manager.mark_page_ignored(docname)
+            return
+
     # Extract title from the document
     title = None
     # findall() returns a generator, convert to list to check if it has elements

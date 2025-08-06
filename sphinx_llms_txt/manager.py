@@ -129,6 +129,7 @@ class LLMSFullManager:
         self.srcdir: Optional[str] = None
         self.outdir: Optional[str] = None
         self.app: Optional[Sphinx] = None
+        self.ignored_pages: set = set()
 
     def set_master_doc(self, master_doc: str):
         """Set the master document name."""
@@ -143,6 +144,10 @@ class LLMSFullManager:
     def update_page_title(self, docname: str, title: str):
         """Update the title for a page."""
         self.collector.update_page_title(docname, title)
+
+    def mark_page_ignored(self, docname: str):
+        """Mark a page as ignored due to llms-txt-ignore metadata."""
+        self.ignored_pages.add(docname)
 
     def set_config(self, config: Dict[str, Any]):
         """Set configuration options."""
@@ -276,6 +281,11 @@ class LLMSFullManager:
         abort_due_to_max_lines = False
 
         for docname, _ in page_order:
+            # Skip pages marked as ignored
+            if docname in self.ignored_pages:
+                logger.debug(f"sphinx-llms-txt: Skipping ignored page: {docname}")
+                continue
+
             if docname in docname_to_file:
                 file_path = docname_to_file[docname]
                 content, line_count = self._read_source_file(file_path, docname)
@@ -361,6 +371,13 @@ class LLMSFullManager:
                         break
 
                 if docname is None:
+                    continue
+
+                # Skip pages marked as ignored
+                if docname in self.ignored_pages:
+                    logger.debug(
+                        f"sphinx-llms-txt: Skipping ignored remaining file: {docname}"
+                    )
                     continue
 
                 # Skip excluded docnames
