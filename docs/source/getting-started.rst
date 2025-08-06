@@ -43,7 +43,11 @@ During the Sphinx build process:
    - ``llms.txt``: A concise summary of your documentation, in Markdown
    - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText
 
-5. **Content Filtering**: Allows you to exclude specific pages from the generated files
+5. **Content Filtering**: Allows you to exclude specific pages or sections using:
+
+   - Configuration-based page exclusion patterns
+   - Page-level metadata (`:llms-txt-ignore: true`)
+   - Block-level ignore directives (`.. llms-txt-ignore-start/end`)
 
 
 .. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt

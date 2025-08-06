@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.0
+-----
+
+- Add support for page-level ignore metadata (``:llms-txt-ignore: true``)
+- Add support for block-level ignore syntax (``.. llms-txt-ignore-start`` / ``.. llms-txt-ignore-end``)
+
 0.4.1
 -----
 

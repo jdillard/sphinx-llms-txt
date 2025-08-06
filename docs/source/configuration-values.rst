@@ -78,7 +78,9 @@ Project Configuration Values
 
    - **Type**: list of strings
    - **Default**: ``[]``
-   - **Description**: A list of pages to ignore.
+   - **Description**: A list of pages to ignore using glob patterns.
+     In addition to this configuration, you can also exclude content using
+     :ref:`page_level_ignore` metadata and :ref:`block_level_ignore` directives.
      See :ref:`excluding_content`.
 
    .. versionadded:: 0.2.1
