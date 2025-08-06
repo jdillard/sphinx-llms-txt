@@ -4,8 +4,8 @@ Changelog
 0.5.0
 -----
 
-- Add support for page-level ignore metadata (``:llms-txt-ignore: true``)
-- Add support for block-level ignore syntax (``.. llms-txt-ignore-start`` / ``.. llms-txt-ignore-end``)
+- Add :ref:`block_level_ignore`
+- Add :ref:`page_level_ignore`
 
 0.4.1
 -----
