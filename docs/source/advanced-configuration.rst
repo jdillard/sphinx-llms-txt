@@ -131,6 +131,7 @@ You can exclude specific pages from being included in the generated files:
    ]
 
 This is useful for excluding auto-generated pages, indexes, or content that isn't relevant for LLM consumption.
+It can also be used to reduce the size of llms-full.txt.
 
 .. _page_level_ignore:
 
@@ -148,11 +149,7 @@ You can exclude individual pages by adding metadata at the top of any reStructur
 
    This entire page will be excluded from llms-full.txt
 
-When this metadata is present, the entire page is skipped during processing. This is useful for:
-
-- Documentation pages not relevant to LLMs
-- Internal development notes
-- Legacy content you want to keep but not include in the generated file
+When this metadata is present, the entire page is skipped during processing.
 
 .. _block_level_ignore:
 
@@ -187,18 +184,14 @@ You can exclude specific sections within a page using ignore directives:
 
    This content will be included again.
 
-Block-level ignores are useful for:
+Block-level ignores can be useful for:
 
 - Removing internal notes or TODOs
-- Excluding complex examples that aren't helpful for LLMs
 - Hiding implementation details while keeping user-facing documentation
-- Removing redundant content that appears in multiple places
 
 .. note::
-   - Ignore blocks can span multiple sections and contain any reStructuredText content
    - Multiple ignore blocks can be used within the same file
    - Ignore directives work with any indentation level
-   - Empty ignore blocks are handled gracefully
 
 .. _including_code_files:
 
