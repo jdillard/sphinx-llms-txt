@@ -10,8 +10,8 @@ Demo
 
 You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
 
-Features
----------
+Highlights
+----------
 
 1. **Content Collection**: Quickly gathers content from _sources, without needing a separate build
 2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
