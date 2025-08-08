@@ -95,20 +95,7 @@ It uses the format ``"<loglevel>_<action>"``:
 - ``keep``: Create the file anyway, ignoring the size limit
 - ``note``: Create a placeholder file explaining why the full file wasn't generated
 
-**Examples:**
-
-.. code-block:: python
-
-   # Skip file generation with warning (default)
-   llms_txt_full_size_policy = "warn_skip"
-
-   # Create file anyway with info message
-   llms_txt_full_size_policy = "info_keep"
-
-   # Create placeholder file with warning message
-   llms_txt_full_size_policy = "warn_note"
-
-.. tip:: Use :ref:`excluding_content` to remove less relevant pages.
+.. tip:: Use :ref:`excluding_content` to remove less relevant pages and reduce the file size.
 
 .. _custom_directive_handling:
 
