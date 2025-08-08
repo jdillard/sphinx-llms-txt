@@ -4,7 +4,7 @@ Changelog
 0.5.0
 -----
 
-- Add :confval:`llms_txt_full_on_exceed` configuration option to control behavior when :confval:`llms_txt_full_max_size` is exceeded.
+- Add :confval:`llms_txt_full_size_policy` configuration option to control behavior when :confval:`llms_txt_full_max_size` is exceeded.
   `#35 <https://github.com/jdillard/sphinx-llms-txt/pull/35>`_
 
 0.4.1

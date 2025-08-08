@@ -405,7 +405,7 @@ class LLMSFullManager:
         max_lines = self.config.get("llms_txt_full_max_size")
         if max_lines is not None and total_line_count > max_lines:
             # Parse the on_exceed configuration
-            on_exceed = self.config.get("llms_txt_full_on_exceed", "warn_skip")
+            on_exceed = self.config.get("llms_txt_full_size_policy", "warn_skip")
             log_level, action = self._parse_on_exceed_config(on_exceed)
 
             # Log with the specified level
@@ -832,7 +832,7 @@ class LLMSFullManager:
                 self._format_tree_node(subtree, lines, next_prefix, False)
 
     def _parse_on_exceed_config(self, on_exceed: str) -> tuple[str, str]:
-        """Parse the llms_txt_full_on_exceed configuration value.
+        """Parse the llms_txt_full_size_policy configuration value.
 
         Args:
             on_exceed: Configuration string in format "loglevel_action"
@@ -844,7 +844,7 @@ class LLMSFullManager:
         """
         if not on_exceed or "_" not in on_exceed:
             logger.warning(
-                f"sphinx-llms-txt: Invalid llms_txt_full_on_exceed "
+                f"sphinx-llms-txt: Invalid llms_txt_full_size_policy "
                 f"format: '{on_exceed}'. "
                 f"Using default 'warn_skip'."
             )
@@ -857,7 +857,7 @@ class LLMSFullManager:
         if log_level not in ["warn", "info"]:
             logger.warning(
                 f"sphinx-llms-txt: Invalid log level '{log_level}' in "
-                f"llms_txt_full_on_exceed. "
+                f"llms_txt_full_size_policy. "
                 f"Valid options: warn, info. Using 'warn'."
             )
             log_level = "warn"
@@ -866,7 +866,7 @@ class LLMSFullManager:
         if action not in ["keep", "skip", "note"]:
             logger.warning(
                 f"sphinx-llms-txt: Invalid action '{action}' in "
-                f"llms_txt_full_on_exceed. "
+                f"llms_txt_full_size_policy. "
                 f"Valid options: keep, skip, note. Using 'skip'."
             )
             action = "skip"
@@ -883,7 +883,7 @@ class LLMSFullManager:
         # Create the placeholder note content
         placeholder_content = (
             f".. This file was not generated because it exceeded the configured size limit.\n"  # noqa: E501
-            "   See the conf.py ``llms_txt_full_max_size`` and ``llms_txt_full_on_exceed``\n"  # noqa: E501
+            "   See the conf.py ``llms_txt_full_max_size`` and ``llms_txt_full_size_policy``\n"  # noqa: E501
             "   for configuration options.\n"
             "\n"
             f"   Configured max size: {max_lines} lines\n"

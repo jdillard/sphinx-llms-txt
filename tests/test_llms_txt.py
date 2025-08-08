@@ -762,7 +762,7 @@ def test_summary_default_uses_first_paragraph():
             llms_txt_full_file = True
             llms_txt_full_filename = "llms-full.txt"
             llms_txt_full_max_size = None
-            llms_txt_full_on_exceed = "warn_skip"
+            llms_txt_full_size_policy = "warn_skip"
             llms_txt_directives = []
             llms_txt_exclude = []
             llms_txt_code_files = []

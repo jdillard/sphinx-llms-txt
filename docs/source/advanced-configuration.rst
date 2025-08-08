@@ -81,9 +81,9 @@ You can set a maximum line count and control what happens when that limit is exc
 .. code-block:: python
 
    llms_txt_full_max_size = 10000  # Maximum 10,000 lines
-   llms_txt_full_on_exceed = "warn_skip"  # Default behavior
+   llms_txt_full_size_policy = "warn_skip"  # Default behavior
 
-The ``llms_txt_full_on_exceed`` setting controls both the log level and action taken when the size limit is exceeded.
+The ``llms_txt_full_size_policy`` setting controls both the log level and action taken when the size limit is exceeded.
 It uses the format ``"<loglevel>_<action>"``:
 
 **Log levels:**
@@ -100,13 +100,13 @@ It uses the format ``"<loglevel>_<action>"``:
 .. code-block:: python
 
    # Skip file generation with warning (default)
-   llms_txt_full_on_exceed = "warn_skip"
+   llms_txt_full_size_policy = "warn_skip"
 
    # Create file anyway with info message
-   llms_txt_full_on_exceed = "info_keep"
+   llms_txt_full_size_policy = "info_keep"
 
    # Create placeholder file with warning message
-   llms_txt_full_on_exceed = "warn_note"
+   llms_txt_full_size_policy = "warn_note"
 
 .. tip:: Use :ref:`excluding_content` to remove less relevant pages.
 
@@ -222,7 +222,7 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    llms_txt_filename = "ai-summary.txt"
    llms_txt_full_filename = "ai-full-docs.txt"
    llms_txt_full_max_size = 50000
-   llms_txt_full_on_exceed = "warn_note"
+   llms_txt_full_size_policy = "warn_note"
 
    # Content customization
    llms_txt_title = "Project Documentation for AI Assistants"

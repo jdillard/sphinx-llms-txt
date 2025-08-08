@@ -131,7 +131,7 @@ def test_on_exceed_skip(temp_dir, rootdir):
         confoverrides={
             "llms_txt_full_filename": "skip-test.txt",
             "llms_txt_full_max_size": 5,
-            "llms_txt_full_on_exceed": "warn_skip",
+            "llms_txt_full_size_policy": "warn_skip",
         },
     )
 
@@ -164,7 +164,7 @@ def test_on_exceed_keep(temp_dir, rootdir):
         confoverrides={
             "llms_txt_full_filename": "keep-test.txt",
             "llms_txt_full_max_size": 5,
-            "llms_txt_full_on_exceed": "info_keep",
+            "llms_txt_full_size_policy": "info_keep",
         },
     )
 
@@ -201,7 +201,7 @@ def test_on_exceed_note(temp_dir, rootdir):
         confoverrides={
             "llms_txt_full_filename": "note-test.txt",
             "llms_txt_full_max_size": 5,
-            "llms_txt_full_on_exceed": "warn_note",
+            "llms_txt_full_size_policy": "warn_note",
         },
     )
 
@@ -220,7 +220,7 @@ def test_on_exceed_note(temp_dir, rootdir):
         in content
     )
     assert "llms_txt_full_max_size" in content
-    assert "llms_txt_full_on_exceed" in content
+    assert "llms_txt_full_size_policy" in content
     assert "Configured max size: 5 lines" in content
 
     # Cleanup
@@ -244,7 +244,7 @@ def test_on_exceed_invalid_config(temp_dir, rootdir):
         confoverrides={
             "llms_txt_full_filename": "invalid-test.txt",
             "llms_txt_full_max_size": 5,
-            "llms_txt_full_on_exceed": "invalid_format",  # Invalid config
+            "llms_txt_full_size_policy": "invalid_format",  # Invalid config
         },
     )
 
