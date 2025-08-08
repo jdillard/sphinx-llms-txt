@@ -76,13 +76,37 @@ Handling Large Documentation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 For very large documentation sets, generating the full documentation file might exceed reasonable size limits.
-You can set a maximum line count:
+You can set a maximum line count and control what happens when that limit is exceeded:
 
 .. code-block:: python
 
    llms_txt_full_max_size = 10000  # Maximum 10,000 lines
+   llms_txt_full_on_exceed = "warn_skip"  # Default behavior
 
-If the generated file would exceed this limit, the extension will skip its generation and show a warning, allowing the build to complete.
+The ``llms_txt_full_on_exceed`` setting controls both the log level and action taken when the size limit is exceeded.
+It uses the format ``"<loglevel>_<action>"``:
+
+**Log levels:**
+- ``warn``: Log as a warning (default)
+- ``info``: Log as informational message
+
+**Actions:**
+- ``skip``: Don't create the file (default)
+- ``keep``: Create the file anyway, ignoring the size limit
+- ``note``: Create a placeholder file explaining why the full file wasn't generated
+
+**Examples:**
+
+.. code-block:: python
+
+   # Skip file generation with warning (default)
+   llms_txt_full_on_exceed = "warn_skip"
+
+   # Create file anyway with info message
+   llms_txt_full_on_exceed = "info_keep"
+
+   # Create placeholder file with warning message
+   llms_txt_full_on_exceed = "warn_note"
 
 .. tip:: Use :ref:`excluding_content` to remove less relevant pages.
 
@@ -198,6 +222,7 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    llms_txt_filename = "ai-summary.txt"
    llms_txt_full_filename = "ai-full-docs.txt"
    llms_txt_full_max_size = 50000
+   llms_txt_full_on_exceed = "warn_note"
 
    # Content customization
    llms_txt_title = "Project Documentation for AI Assistants"

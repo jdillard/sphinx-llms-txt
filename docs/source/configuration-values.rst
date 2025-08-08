@@ -24,10 +24,21 @@ Project Configuration Values
    - **Type**: integer or ``None``
    - **Default**: ``None`` (no limit)
    - **Description**: Sets a maximum line count for ``llms_txt_full_filename``.
-     If exceeded, the file is skipped and a warning is shown, but the build still completes.
+     Behavior when exceeded is controlled by :confval:`llms_txt_full_on_exceed`.
      See :ref:`handling_large_documentation`.
 
    .. versionadded:: 0.2.0
+
+.. confval:: llms_txt_full_on_exceed
+
+   - **Type**: string
+   - **Default**: ``'warn_skip'``
+   - **Description**: Controls what happens when :confval:`llms_txt_full_max_size` is exceeded.
+     Format is ``"<loglevel>_<action>"``. Log levels: ``warn``, ``info``.
+     Actions: ``skip`` (don't create file), ``keep`` (create file anyway), ``note`` (create placeholder file with explanation).
+     See :ref:`handling_large_documentation`.
+
+   .. versionadded:: 0.5.0
 
 .. confval:: llms_txt_file
 
