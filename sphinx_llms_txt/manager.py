@@ -484,7 +484,6 @@ class LLMSFullManager:
                 return
             elif action == "keep":
                 filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
-                logger.info(f"sphinx-llms-txt: Building {filename} despite size limit")
                 # Fall through to write the file
 
         # Write combined file only if we have content to write
