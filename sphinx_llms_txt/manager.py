@@ -274,11 +274,32 @@ class LLMSFullManager:
         total_line_count = code_files_line_count
         max_lines = self.config.get("llms_txt_full_max_size")
 
-        # Always collect all content first, then decide what to do based on size
+        # Parse size_policy configuration early to determine collection strategy
+        size_policy_action = None
+        if max_lines is not None:
+            size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
+            _, size_policy_action = self._parse_size_policy_config(size_policy)
+
+        # Only collect all files if action is "keep"
+        # For "skip" and "note", we can abort early when size limit is exceeded
+        should_abort_early = size_policy_action in ["skip", "note"]
+
         for docname, _ in page_order:
             if docname in docname_to_file:
                 file_path = docname_to_file[docname]
                 content, line_count = self._read_source_file(file_path, docname)
+
+                # Abort early for skip/note actions
+                if (
+                    max_lines is not None
+                    and total_line_count + line_count > max_lines
+                    and should_abort_early
+                ):
+                    logger.debug(
+                        f"sphinx-llms-txt: Stopping collection due to size limit. "
+                        f"File {docname} would exceed limit."
+                    )
+                    break
 
                 # Double-check this file should be included (not in excluded patterns)
                 exclude_patterns = self.config.get("llms_txt_exclude")
@@ -310,103 +331,121 @@ class LLMSFullManager:
                 )
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
-        # Get all source files in the _sources directory using configured suffixes
-        source_suffixes = self._get_source_suffixes()
-        all_source_files = []
-        for src_suffix in source_suffixes:
-            # Avoid duplicate extensions when source_suffix == source_link_suffix
-            if src_suffix == source_link_suffix:
-                glob_pattern = f"**/*{src_suffix}"
-            else:
-                glob_pattern = f"**/*{src_suffix}{source_link_suffix}"
-            all_source_files.extend(sources_dir.glob(glob_pattern))
-
-        processed_paths = set(file.resolve() for file in docname_to_file.values())
-
-        # Find files that haven't been processed yet
-        remaining_source_files = [
-            f for f in all_source_files if f.resolve() not in processed_paths
-        ]
-
-        # Sort the remaining files for consistent ordering
-        remaining_source_files.sort()
-
-        if remaining_source_files:
-            logger.info(
-                f"Found {len(remaining_source_files)} additional files not in"
-                f" toctree"
-            )
-
-        for file_path in remaining_source_files:
-            # Extract docname from path by removing the source and link suffixes
-            rel_path = str(file_path.relative_to(sources_dir))
-            docname = None
-
-            # Try each source suffix to find which one this file uses
+        # Only skip this if we aborted early due to size limits for skip/note actions
+        size_limit_exceeded = max_lines is not None and total_line_count > max_lines
+        if not (size_limit_exceeded and should_abort_early):
+            # Get all source files in the _sources directory using configured suffixes
+            source_suffixes = self._get_source_suffixes()
+            all_source_files = []
             for src_suffix in source_suffixes:
-                # Avoid duplicate extensions when suffixes match
+                # Avoid duplicate extensions when source_suffix == source_link_suffix
                 if src_suffix == source_link_suffix:
-                    combined_suffix = src_suffix
+                    glob_pattern = f"**/*{src_suffix}"
                 else:
-                    combined_suffix = f"{src_suffix}{source_link_suffix}"
+                    glob_pattern = f"**/*{src_suffix}{source_link_suffix}"
+                all_source_files.extend(sources_dir.glob(glob_pattern))
 
-                if rel_path.endswith(combined_suffix):
-                    docname = rel_path[: -len(combined_suffix)]  # Remove suffix
+            processed_paths = set(file.resolve() for file in docname_to_file.values())
+
+            # Find files that haven't been processed yet
+            remaining_source_files = [
+                f for f in all_source_files if f.resolve() not in processed_paths
+            ]
+
+            # Sort the remaining files for consistent ordering
+            remaining_source_files.sort()
+
+            if remaining_source_files:
+                logger.info(
+                    f"Found {len(remaining_source_files)} additional files not in"
+                    f" toctree"
+                )
+
+            for file_path in remaining_source_files:
+                # Extract docname from path by removing the source and link suffixes
+                rel_path = str(file_path.relative_to(sources_dir))
+                docname = None
+
+                # Try each source suffix to find which one this file uses
+                for src_suffix in source_suffixes:
+                    # Avoid duplicate extensions when suffixes match
+                    if src_suffix == source_link_suffix:
+                        combined_suffix = src_suffix
+                    else:
+                        combined_suffix = f"{src_suffix}{source_link_suffix}"
+
+                    if rel_path.endswith(combined_suffix):
+                        docname = rel_path[: -len(combined_suffix)]  # Remove suffix
+                        break
+
+                if docname is None:
+                    continue
+
+                # Skip excluded docnames
+                if exclude_patterns and any(
+                    self.collector._match_exclude_pattern(docname, pattern)
+                    for pattern in exclude_patterns
+                ):
+                    logger.debug(f"sphinx-llms-txt: Skipping excluded file: {docname}")
+                    continue
+
+                # Read and process the file
+                content, line_count = self._read_source_file(file_path, docname)
+
+                # Abort early for skip/note actions
+                if (
+                    max_lines is not None
+                    and total_line_count + line_count > max_lines
+                    and should_abort_early
+                ):
                     break
 
-            if docname is None:
-                continue
-
-            # Skip excluded docnames
-            if exclude_patterns and any(
-                self.collector._match_exclude_pattern(docname, pattern)
-                for pattern in exclude_patterns
-            ):
-                logger.debug(f"sphinx-llms-txt: Skipping excluded file: {docname}")
-                continue
-
-            # Read and process the file
-            content, line_count = self._read_source_file(file_path, docname)
-
-            if content:
-                logger.debug(f"sphinx-llms-txt: Adding remaining file: {docname}")
-                content_parts.append(content)
-                total_line_count += line_count
+                if content:
+                    logger.debug(f"sphinx-llms-txt: Adding remaining file: {docname}")
+                    content_parts.append(content)
+                    total_line_count += line_count
 
         # Process code files at the end if configured
-        code_file_parts, processed_file_paths = self._process_code_files()
-        code_files_line_count = sum(part.count("\n") + 1 for part in code_file_parts)
-
-        # Check if adding code files would exceed the maximum line count
-        max_lines = self.config.get("llms_txt_full_max_size")
-        if (
-            max_lines is not None
-            and total_line_count + code_files_line_count > max_lines
-        ):
-            logger.warning(
-                f"sphinx-llms-txt: Adding code files would exceed max line limit "
-                f"({max_lines}). Current: {total_line_count}, "
-                f"Code files: {code_files_line_count}. Skipping code files."
+        # Only skip this if we aborted early due to size limits for skip/note actions
+        if not (size_limit_exceeded and should_abort_early):
+            code_file_parts, processed_file_paths = self._process_code_files()
+            code_files_line_count = sum(
+                part.count("\n") + 1 for part in code_file_parts
             )
-        else:
-            # Add source code files section if there are any code files
-            if code_file_parts:
-                section_header = self._create_code_files_section_header(
-                    processed_file_paths
-                )
-                content_parts.append(section_header)
-                content_parts.extend(code_file_parts)
-                # Add line count for the section header too
-                total_line_count += (
-                    code_files_line_count + section_header.count("\n") + 1
-                )
 
-        # Check if line limit was exceeded and determine what action to take
-        max_lines = self.config.get("llms_txt_full_max_size")
+            # Check if adding code files would exceed the maximum line count
+            # For "keep" action, we include code files regardless of size
+            if (
+                max_lines is not None
+                and total_line_count + code_files_line_count > max_lines
+                and should_abort_early
+            ):
+                logger.warning(
+                    f"sphinx-llms-txt: Adding code files would exceed max line limit "
+                    f"({max_lines}). Current: {total_line_count}, "
+                    f"Code files: {code_files_line_count}. Skipping code files."
+                )
+            else:
+                # Add source code files section if there are any code files
+                if code_file_parts:
+                    section_header = self._create_code_files_section_header(
+                        processed_file_paths
+                    )
+                    content_parts.append(section_header)
+                    content_parts.extend(code_file_parts)
+                    # Add line count for the section header too
+                    total_line_count += (
+                        code_files_line_count + section_header.count("\n") + 1
+                    )
+        else:
+            # If we aborted early for skip/note actions, set empty code file parts
+            code_file_parts = []
+
+        # Handle size limit exceeded cases
         if max_lines is not None and total_line_count > max_lines:
-            # Parse the on_exceed configuration
-            on_exceed = self.config.get("llms_txt_full_size_policy", "warn_skip")
-            log_level, action = self._parse_on_exceed_config(on_exceed)
+            # Parse the size_policy configuration (reuse what we parsed earlier)
+            size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
+            log_level, action = self._parse_size_policy_config(size_policy)
 
             # Log with the specified level
             message = (
@@ -420,11 +459,14 @@ class LLMSFullManager:
                 logger.warning(message)
 
             # Handle different actions
-            if action == "keep":
-                logger.info(
-                    "sphinx-llms-txt: Building llms-full.txt despite size limit."
-                )
-                # Continue to write the file
+            if action == "skip":
+                logger.info("sphinx-llms-txt: Skipping llms-full.txt generation.")
+                # Log summary information if requested
+                if self.config.get("llms_txt_file"):
+                    self.writer.write_verbose_info_to_file(
+                        page_order, self.collector.page_titles, total_line_count
+                    )
+                return
             elif action == "note":
                 logger.info(
                     "sphinx-llms-txt: Creating placeholder llms-full.txt with note."
@@ -437,15 +479,11 @@ class LLMSFullManager:
                         page_order, self.collector.page_titles, total_line_count
                     )
                 return
-            else:  # action == "skip" (default)
-                logger.info("sphinx-llms-txt: Skipping llms-full.txt generation.")
-
-                # Log summary information if requested
-                if self.config.get("llms_txt_file"):
-                    self.writer.write_verbose_info_to_file(
-                        page_order, self.collector.page_titles, total_line_count
-                    )
-                return
+            elif action == "keep":
+                logger.info(
+                    "sphinx-llms-txt: Building llms-full.txt despite size limit."
+                )
+                # Fall through to write the file
 
         # Write combined file only if we have content to write
         if content_parts:
@@ -831,26 +869,26 @@ class LLMSFullManager:
             if subtree is not None:  # It's a directory
                 self._format_tree_node(subtree, lines, next_prefix, False)
 
-    def _parse_on_exceed_config(self, on_exceed: str) -> tuple[str, str]:
+    def _parse_size_policy_config(self, size_policy: str) -> tuple[str, str]:
         """Parse the llms_txt_full_size_policy configuration value.
 
         Args:
-            on_exceed: Configuration string in format "loglevel_action"
+            size_policy: Configuration string in format "loglevel_action"
 
         Returns:
             Tuple of (log_level, action) where:
             - log_level is "warn" or "info"
             - action is "keep", "skip", or "note"
         """
-        if not on_exceed or "_" not in on_exceed:
+        if not size_policy or "_" not in size_policy:
             logger.warning(
                 f"sphinx-llms-txt: Invalid llms_txt_full_size_policy "
-                f"format: '{on_exceed}'. "
+                f"format: '{size_policy}'. "
                 f"Using default 'warn_skip'."
             )
             return "warn", "skip"
 
-        parts = on_exceed.split("_", 1)  # Split on first underscore only
+        parts = size_policy.split("_", 1)  # Split on first underscore only
         log_level, action = parts[0], parts[1]
 
         # Validate log level
