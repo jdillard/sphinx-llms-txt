@@ -454,14 +454,12 @@ class LLMSFullManager:
             log_level, action = self._parse_size_policy_config(size_policy)
 
             # Log with the specified level
-            message = (
-                f"sphinx-llms-txt: Max line limit ({max_lines}) exceeded: "
-                f"{total_line_count} > {max_lines}."
-            )
+            filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+            message = f"sphinx-llms-txt: Max lines ({max_lines}) exceeded for {filename}."  # noqa: E501
 
             if log_level == "info":
                 logger.info(message)
-            else:  # Default to warning
+            else:
                 logger.warning(message)
 
             # Handle different actions
