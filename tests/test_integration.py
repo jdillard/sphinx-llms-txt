@@ -117,6 +117,152 @@ def test_max_lines_limit(temp_dir, rootdir):
         app.docutils_conf_path.unlink()
 
 
+def test_on_exceed_skip(temp_dir, rootdir):
+    """Test that skip action works when size limit is exceeded."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_full_filename": "skip-test.txt",
+            "llms_txt_full_max_size": 20,
+            "llms_txt_full_size_policy": "warn_skip",
+        },
+    )
+
+    app.build()
+
+    # Check that the output file was NOT created
+    output_file = Path(app.outdir) / "skip-test.txt"
+    assert (
+        not output_file.exists()
+    ), f"Output file {output_file} should not exist with skip action"
+
+    # Cleanup
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
+
+
+def test_on_exceed_keep(temp_dir, rootdir):
+    """Test that keep action works when size limit is exceeded."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_full_filename": "keep-test.txt",
+            "llms_txt_full_max_size": 20,
+            "llms_txt_full_size_policy": "info_keep",
+        },
+    )
+
+    app.build()
+
+    # Check that the output file WAS created despite exceeding limit
+    output_file = Path(app.outdir) / "keep-test.txt"
+    assert (
+        output_file.exists()
+    ), f"Output file {output_file} should exist with keep action"
+
+    # Verify it has content
+    content = output_file.read_text()
+    assert len(content) > 0, "Output file should have content with keep action"
+
+    # Cleanup
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
+
+
+def test_on_exceed_note(temp_dir, rootdir):
+    """Test that note action works when size limit is exceeded."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_full_filename": "note-test.txt",
+            "llms_txt_full_max_size": 20,
+            "llms_txt_full_size_policy": "warn_note",
+        },
+    )
+
+    app.build()
+
+    # Check that the output file WAS created with placeholder content
+    output_file = Path(app.outdir) / "note-test.txt"
+    assert (
+        output_file.exists()
+    ), f"Output file {output_file} should exist with note action"
+
+    # Verify it has the placeholder content
+    content = output_file.read_text()
+    assert (
+        "This file was not generated because it exceeded the configured size limit."
+        in content
+    )
+    assert "llms_txt_full_max_size" in content
+    assert "llms_txt_full_size_policy" in content
+    assert "Configured max size: 20 lines" in content
+
+    # Cleanup
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
+
+
+def test_on_exceed_invalid_config(temp_dir, rootdir):
+    """Test behavior with invalid configuration values."""
+    from sphinx.testing.util import SphinxTestApp
+
+    src_dir = rootdir / "basic"
+
+    app = SphinxTestApp(
+        srcdir=src_dir,
+        builddir=temp_dir,
+        buildername="html",
+        freshenv=True,
+        confoverrides={
+            "llms_txt_full_filename": "invalid-test.txt",
+            "llms_txt_full_max_size": 20,
+            "llms_txt_full_size_policy": "invalid_format",  # Invalid config
+        },
+    )
+
+    app.build()
+
+    # Should fall back to default behavior (warn_skip)
+    output_file = Path(app.outdir) / "invalid-test.txt"
+    assert (
+        not output_file.exists()
+    ), f"Output file {output_file} should not exist with invalid config fallback"
+
+    # Cleanup
+    sys.path[:] = app._saved_path
+    _clean_up_global_state()
+    if hasattr(app, "docutils_conf_path") and app.docutils_conf_path.exists():
+        app.docutils_conf_path.unlink()
+
+
 def test_title_override(temp_dir, rootdir):
     """Test that the title override works correctly."""
     from sphinx.testing.util import SphinxTestApp

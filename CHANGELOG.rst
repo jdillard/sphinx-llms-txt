@@ -6,6 +6,8 @@ Changelog
 
 - Add :ref:`block_level_ignore` and :ref:`page_level_ignore`
   `#33 <https://github.com/jdillard/sphinx-llms-txt/pull/33>`_
+- Add :confval:`llms_txt_full_size_policy` configuration option to control behavior when :confval:`llms_txt_full_max_size` is exceeded.
+  `#35 <https://github.com/jdillard/sphinx-llms-txt/pull/35>`_
 
 0.4.1
 -----
