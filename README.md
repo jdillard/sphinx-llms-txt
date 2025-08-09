@@ -13,11 +13,8 @@ See [sphinx-llms-txt documentation](https://sphinx-llms-txt.readthedocs.io/en/la
 
 ## Contributing
 
-Pull Requests welcome! See `Contributing`_ for instructions on how best to contribute.
+Pull Requests welcome! See [Contributing](https://sphinx-llms-txt.readthedocs.io/en/latest/contributing.html) for instructions on how best to contribute.
 
 ## License
 
 MIT License - see LICENSE file for details.
-
-
-.. _Contributing: https://sphinx-llms-txt.readthedocs.io/en/latest/contributing.html
