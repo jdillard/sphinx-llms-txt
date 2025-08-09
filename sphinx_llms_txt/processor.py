@@ -44,7 +44,10 @@ class DocumentProcessor:
         Returns:
             Processed content with directives properly resolved
         """
-        # First process include directives
+        # First process llms-txt-ignore blocks
+        content = self._process_ignore_blocks(content)
+
+        # Then process include directives
         content = self._process_includes(content, source_path)
 
         # Then process path directives (image, figure, etc.)
@@ -336,4 +339,37 @@ class DocumentProcessor:
 
         # Replace all includes with their content
         processed_content = include_pattern.sub(replace_include, content)
+        return processed_content
+
+    def _process_ignore_blocks(self, content: str) -> str:
+        """Process llms-txt-ignore-start/end blocks by removing their content.
+
+        Args:
+            content: The source content to process
+
+        Returns:
+            Processed content with ignore blocks removed
+        """
+        # Process ignore blocks iteratively to handle nested cases correctly
+        while True:
+            # Pattern to match ignore blocks - handles whitespace and indentation
+            ignore_pattern = re.compile(
+                r"^\s*\.\.\s+llms-txt-ignore-start\s*\n"  # Start directive line
+                r"(.*?)"  # Content to ignore (non-greedy)
+                r"^\s*\.\.\s+llms-txt-ignore-end\s*$",  # End directive line
+                re.MULTILINE | re.DOTALL,
+            )
+
+            # Find and remove one ignore block at a time
+            match = ignore_pattern.search(content)
+            if not match:
+                break
+
+            # Remove the matched block
+            content = content[: match.start()] + content[match.end() :]
+
+        # Clean up any extra blank lines that might be left
+        # Replace multiple consecutive newlines with at most 2 newlines
+        processed_content = re.sub(r"\n\n\n+", "\n\n", content)
+
         return processed_content

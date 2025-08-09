@@ -124,6 +124,13 @@ This ensures that paths in your custom directives are properly resolved in the g
 Excluding Content
 ^^^^^^^^^^^^^^^^^
 
+There are several ways to exclude content from the generated ``llms-full.txt`` file:
+
+.. _global_exclusion:
+
+Global Page Exclusion
+~~~~~~~~~~~~~~~~~~~~~~
+
 You can exclude specific pages from being included in the generated files:
 
 .. code-block:: python
@@ -135,6 +142,67 @@ You can exclude specific pages from being included in the generated files:
    ]
 
 This is useful for excluding auto-generated pages, indexes, or content that isn't relevant for LLM consumption.
+It can also be used to reduce the size of llms-full.txt.
+
+.. _page_level_ignore:
+
+Page-Level Ignore Metadata
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can exclude individual pages by adding metadata at the top of any reStructuredText file:
+
+.. code-block:: restructuredtext
+
+   :llms-txt-ignore: true
+
+   Page Title
+   ==========
+
+   This entire page will be excluded from llms-full.txt
+
+When this metadata is present, the entire page is skipped during processing.
+
+.. _block_level_ignore:
+
+Block-Level Ignore Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can exclude specific sections within a page using ignore directives:
+
+.. code-block:: restructuredtext
+
+   Page Title
+   ==========
+
+   This content will be included in llms-full.txt.
+
+   .. llms-txt-ignore-start
+
+   This content will be excluded from llms-full.txt.
+
+   Section To Ignore
+   -----------------
+
+   This entire section and any nested content will be ignored.
+
+   .. code-block:: python
+
+      # This code block will also be ignored
+      def ignored_function():
+          pass
+
+   .. llms-txt-ignore-end
+
+   This content will be included again.
+
+Block-level ignores can be useful for:
+
+- Removing internal notes or TODOs
+- Hiding implementation details while keeping user-facing documentation
+
+.. note::
+   - Multiple ignore blocks can be used within the same file
+   - Ignore directives work with any indentation level
 
 .. _including_code_files:
 

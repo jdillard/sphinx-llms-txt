@@ -1,11 +1,6 @@
 Getting Started
 ===============
 
-Demo
-----
-
-You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
-
 Installation
 ------------
 
@@ -14,6 +9,12 @@ Directly install via ``pip`` by using:
 .. code-block:: bash
 
     pip install sphinx-llms-txt
+
+Or with ``conda`` via ``conda-forge``:
+
+.. code::
+
+   conda install -c conda-forge sphinx-llms-txt
 
 Usage
 -----
@@ -26,25 +27,12 @@ Add the extension to your Sphinx configuration (``conf.py``):
         'sphinx_llms_txt',
     ]
 
-Once added, the extension will automatically generate the LLMs.txt files during the build process.
+After the HTML finishes building, **sphinx-llms-txt** will output the location of the output files::
+
+    sphinx-llms-txt: Created /path/to/_build/html/llms-full.txt with 45 sources and 6879 lines
+    sphinx-llms-txt: created /path/to/_build/html/llms.txt
+
+
+.. tip:: Make sure to confirm the accuracy of the output files after installs and upgrades.
 
 See :doc:`advanced-configuration` for more information about how to use **sphinx-llms-txt**.
-
-How It Works
-------------
-
-During the Sphinx build process:
-
-1. **Content Collection**: Scans all of your documentation's ``_source`` pages and collects their content
-2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
-3. **Path Resolution**: Transforms relative paths in directives to full paths
-4. **Output Generation**: Creates two optional files:
-
-   - ``llms.txt``: A concise summary of your documentation, in Markdown
-   - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText
-
-5. **Content Filtering**: Allows you to exclude specific pages from the generated files
-
-
-.. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt
-.. _llms-full.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms-full.txt

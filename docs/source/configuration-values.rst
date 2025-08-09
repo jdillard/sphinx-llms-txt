@@ -89,7 +89,7 @@ Project Configuration Values
 
    - **Type**: list of strings
    - **Default**: ``[]``
-   - **Description**: A list of pages to ignore.
+   - **Description**: A list of pages to ignore using glob patterns.
      See :ref:`excluding_content`.
 
    .. versionadded:: 0.2.1
