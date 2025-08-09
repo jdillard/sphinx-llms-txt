@@ -276,6 +276,7 @@ class LLMSFullManager:
 
         # Parse size_policy configuration early to determine collection strategy
         size_policy_action = None
+        aborted_due_to_size = False
         if max_lines is not None:
             size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
             _, size_policy_action = self._parse_size_policy_config(size_policy)
@@ -299,6 +300,7 @@ class LLMSFullManager:
                         f"sphinx-llms-txt: Stopping collection due to size limit. "
                         f"File {docname} would exceed limit."
                     )
+                    aborted_due_to_size = True
                     break
 
                 # Double-check this file should be included (not in excluded patterns)
@@ -398,6 +400,7 @@ class LLMSFullManager:
                     and total_line_count + line_count > max_lines
                     and should_abort_early
                 ):
+                    aborted_due_to_size = True
                     break
 
                 if content:
@@ -425,6 +428,7 @@ class LLMSFullManager:
                     f"({max_lines}). Current: {total_line_count}, "
                     f"Code files: {code_files_line_count}. Skipping code files."
                 )
+                aborted_due_to_size = True
             else:
                 # Add source code files section if there are any code files
                 if code_file_parts:
@@ -442,7 +446,9 @@ class LLMSFullManager:
             code_file_parts = []
 
         # Handle size limit exceeded cases
-        if max_lines is not None and total_line_count > max_lines:
+        if max_lines is not None and (
+            total_line_count > max_lines or aborted_due_to_size
+        ):
             # Parse the size_policy configuration (reuse what we parsed earlier)
             size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
             log_level, action = self._parse_size_policy_config(size_policy)
