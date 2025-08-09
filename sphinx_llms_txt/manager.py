@@ -466,7 +466,8 @@ class LLMSFullManager:
 
             # Handle different actions
             if action == "skip":
-                logger.info("sphinx-llms-txt: Skipping llms-full.txt generation.")
+                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+                logger.info(f"sphinx-llms-txt: Skipping {filename} generation.")
                 # Log summary information if requested
                 if self.config.get("llms_txt_file"):
                     self.writer.write_verbose_info_to_file(
@@ -474,8 +475,9 @@ class LLMSFullManager:
                     )
                 return
             elif action == "note":
+                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
                 logger.info(
-                    "sphinx-llms-txt: Creating placeholder llms-full.txt with note."
+                    f"sphinx-llms-txt: Creating placeholder {filename} with note."
                 )
                 self._write_placeholder_file(output_path, max_lines)
 
@@ -486,9 +488,8 @@ class LLMSFullManager:
                     )
                 return
             elif action == "keep":
-                logger.info(
-                    "sphinx-llms-txt: Building llms-full.txt despite size limit."
-                )
+                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+                logger.info(f"sphinx-llms-txt: Building {filename} despite size limit.")
                 # Fall through to write the file
 
         # Write combined file only if we have content to write
