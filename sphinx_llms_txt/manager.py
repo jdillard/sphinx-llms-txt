@@ -5,7 +5,7 @@ Main manager module for sphinx-llms-txt.
 import glob
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
@@ -148,6 +148,23 @@ class LLMSFullManager:
     def mark_page_ignored(self, docname: str):
         """Mark a page as ignored due to llms-txt-ignore metadata."""
         self.ignored_pages.add(docname)
+
+    def _filter_ignored_pages(
+        self, page_order: Union[List[str], List[Tuple[str, str]]]
+    ) -> Union[List[str], List[Tuple[str, str]]]:
+        """Filter out ignored pages from page_order."""
+        filtered_pages = []
+        for item in page_order:
+            # Handle both old format (str) and new format (tuple)
+            if isinstance(item, tuple):
+                docname, _ = item
+            else:
+                docname = item
+
+            if docname not in self.ignored_pages:
+                filtered_pages.append(item)
+
+        return filtered_pages
 
     def set_config(self, config: Dict[str, Any]):
         """Set configuration options."""
@@ -485,8 +502,11 @@ class LLMSFullManager:
                 logger.info(f"sphinx-llms-txt: Skipping {filename} generation")
                 # Log summary information if requested
                 if self.config.get("llms_txt_file"):
+                    filtered_page_order = self._filter_ignored_pages(page_order)
                     self.writer.write_verbose_info_to_file(
-                        page_order, self.collector.page_titles, total_line_count
+                        filtered_page_order,
+                        self.collector.page_titles,
+                        total_line_count,
                     )
                 return
             elif action == "note":
@@ -495,8 +515,11 @@ class LLMSFullManager:
 
                 # Log summary information if requested
                 if self.config.get("llms_txt_file"):
+                    filtered_page_order = self._filter_ignored_pages(page_order)
                     self.writer.write_verbose_info_to_file(
-                        page_order, self.collector.page_titles, total_line_count
+                        filtered_page_order,
+                        self.collector.page_titles,
+                        total_line_count,
                     )
                 return
             elif action == "keep":
@@ -513,8 +536,9 @@ class LLMSFullManager:
 
         # Log summary information if requested
         if success and self.config.get("llms_txt_file"):
+            filtered_page_order = self._filter_ignored_pages(page_order)
             self.writer.write_verbose_info_to_file(
-                page_order, self.collector.page_titles, total_line_count
+                filtered_page_order, self.collector.page_titles, total_line_count
             )
 
     def _read_source_file(self, file_path: Path, docname: str) -> Tuple[str, int]:

@@ -189,3 +189,32 @@ Content after."""
     lines = processed.strip().split("\n")
     non_empty_lines = [line for line in lines if line.strip()]
     assert len(non_empty_lines) == 2
+
+
+def test_ignore_metadata_affects_both_files(basic_sphinx_app):
+    """Test that :llms-txt-ignore: true affects both files."""
+    app = basic_sphinx_app
+    # Enable both llms.txt and llms-full.txt file generation
+    app.config.llms_txt_file = True
+    app.config.llms_txt_filename = "test-llms.txt"
+    app.build()
+
+    # Check if both output files were created
+    llms_full_file = Path(app.outdir) / "test-llms-full.txt"
+    llms_summary_file = Path(app.outdir) / "test-llms.txt"
+
+    assert llms_full_file.exists(), f"Output file {llms_full_file} does not exist"
+    assert llms_summary_file.exists(), f"Output file {llms_summary_file} does not exist"
+
+    # Read the content of both files
+    llms_full_content = llms_full_file.read_text()
+    llms_summary_content = llms_summary_file.read_text()
+
+    # Check that page with metadata ignore is excluded from llms-full.txt
+    assert "Page Ignored by Metadata" not in llms_full_content
+    assert "This page should not appear in llms-full.txt" not in llms_full_content
+
+    # Check that page with metadata ignore is also excluded from llms.txt
+    # This should NOT contain a link to the ignored page
+    assert "Page Ignored by Metadata" not in llms_summary_content
+    assert "page_ignored_metadata.html" not in llms_summary_content
