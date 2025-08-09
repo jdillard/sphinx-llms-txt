@@ -455,7 +455,7 @@ class LLMSFullManager:
 
             # Log with the specified level
             filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
-            message = f"sphinx-llms-txt: Max lines ({max_lines}) exceeded for {filename}."  # noqa: E501
+            message = f"sphinx-llms-txt: Max lines ({max_lines}) exceeded for {filename}"  # noqa: E501
 
             if log_level == "info":
                 logger.info(message)
@@ -465,7 +465,7 @@ class LLMSFullManager:
             # Handle different actions
             if action == "skip":
                 filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
-                logger.info(f"sphinx-llms-txt: Skipping {filename} generation.")
+                logger.info(f"sphinx-llms-txt: Skipping {filename} generation")
                 # Log summary information if requested
                 if self.config.get("llms_txt_file"):
                     self.writer.write_verbose_info_to_file(
@@ -473,10 +473,7 @@ class LLMSFullManager:
                     )
                 return
             elif action == "note":
-                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
-                logger.info(
-                    f"sphinx-llms-txt: Creating placeholder {filename} with note."
-                )
+                logger.info(f"sphinx-llms-txt: Creating placeholder {output_path}")
                 self._write_placeholder_file(output_path, max_lines)
 
                 # Log summary information if requested
@@ -487,7 +484,7 @@ class LLMSFullManager:
                 return
             elif action == "keep":
                 filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
-                logger.info(f"sphinx-llms-txt: Building {filename} despite size limit.")
+                logger.info(f"sphinx-llms-txt: Building {filename} despite size limit")
                 # Fall through to write the file
 
         # Write combined file only if we have content to write
