@@ -37,7 +37,7 @@ class FileWriter:
                 f.write("\n".join(content_parts))
 
             logger.info(
-                f"sphinx-llms-txt: created {output_path} with {len(content_parts)}"
+                f"sphinx-llms-txt: Created {output_path} with {len(content_parts)}"
                 f" sources and {total_line_count} lines"
             )
             return True

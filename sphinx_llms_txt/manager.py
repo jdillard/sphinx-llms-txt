@@ -273,16 +273,34 @@ class LLMSFullManager:
         added_files = set()
         total_line_count = code_files_line_count
         max_lines = self.config.get("llms_txt_full_max_size")
-        abort_due_to_max_lines = False
+
+        # Parse size_policy configuration early to determine collection strategy
+        size_policy_action = None
+        aborted_due_to_size = False
+        if max_lines is not None:
+            size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
+            _, size_policy_action = self._parse_size_policy_config(size_policy)
+
+        # Only collect all files if action is "keep"
+        # For "skip" and "note", we can abort early when size limit is exceeded
+        should_abort_early = size_policy_action in ["skip", "note"]
 
         for docname, _ in page_order:
             if docname in docname_to_file:
                 file_path = docname_to_file[docname]
                 content, line_count = self._read_source_file(file_path, docname)
 
-                # Check if adding this file would exceed the maximum line count
-                if max_lines is not None and total_line_count + line_count > max_lines:
-                    abort_due_to_max_lines = True
+                # Abort early for skip/note actions
+                if (
+                    max_lines is not None
+                    and total_line_count + line_count > max_lines
+                    and should_abort_early
+                ):
+                    logger.debug(
+                        f"sphinx-llms-txt: Stopping collection due to size limit. "
+                        f"File {docname} would exceed limit."
+                    )
+                    aborted_due_to_size = True
                     break
 
                 # Double-check this file should be included (not in excluded patterns)
@@ -315,7 +333,9 @@ class LLMSFullManager:
                 )
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
-        if not abort_due_to_max_lines:
+        # Only skip this if we aborted early due to size limits for skip/note actions
+        size_limit_exceeded = max_lines is not None and total_line_count > max_lines
+        if not (size_limit_exceeded and should_abort_early):
             # Get all source files in the _sources directory using configured suffixes
             source_suffixes = self._get_source_suffixes()
             all_source_files = []
@@ -374,8 +394,13 @@ class LLMSFullManager:
                 # Read and process the file
                 content, line_count = self._read_source_file(file_path, docname)
 
-                # Check if adding this file would exceed the maximum line count
-                if max_lines is not None and total_line_count + line_count > max_lines:
+                # Abort early for skip/note actions
+                if (
+                    max_lines is not None
+                    and total_line_count + line_count > max_lines
+                    and should_abort_early
+                ):
+                    aborted_due_to_size = True
                     break
 
                 if content:
@@ -384,23 +409,26 @@ class LLMSFullManager:
                     total_line_count += line_count
 
         # Process code files at the end if configured
-        if not abort_due_to_max_lines:
+        # Only skip this if we aborted early due to size limits for skip/note actions
+        if not (size_limit_exceeded and should_abort_early):
             code_file_parts, processed_file_paths = self._process_code_files()
             code_files_line_count = sum(
                 part.count("\n") + 1 for part in code_file_parts
             )
 
             # Check if adding code files would exceed the maximum line count
-            max_lines = self.config.get("llms_txt_full_max_size")
+            # For "keep" action, we include code files regardless of size
             if (
                 max_lines is not None
                 and total_line_count + code_files_line_count > max_lines
+                and should_abort_early
             ):
                 logger.warning(
                     f"sphinx-llms-txt: Adding code files would exceed max line limit "
                     f"({max_lines}). Current: {total_line_count}, "
                     f"Code files: {code_files_line_count}. Skipping code files."
                 )
+                aborted_due_to_size = True
             else:
                 # Add source code files section if there are any code files
                 if code_file_parts:
@@ -413,30 +441,58 @@ class LLMSFullManager:
                     total_line_count += (
                         code_files_line_count + section_header.count("\n") + 1
                     )
+        else:
+            # If we aborted early for skip/note actions, set empty code file parts
+            code_file_parts = []
 
-        # Check if line limit was exceeded before creating the file
-        max_lines = self.config.get("llms_txt_full_max_size")
-        if abort_due_to_max_lines or (
-            max_lines is not None and total_line_count > max_lines
+        # Handle size limit exceeded cases
+        if max_lines is not None and (
+            total_line_count > max_lines or aborted_due_to_size
         ):
-            logger.warning(
-                f"sphinx-llms-txt: Max line limit ({max_lines}) exceeded:"
-                f" {total_line_count} > {max_lines}. "
-                f"Not creating llms-full.txt file."
+            # Parse the size_policy configuration (reuse what we parsed earlier)
+            size_policy = self.config.get("llms_txt_full_size_policy", "warn_skip")
+            log_level, action = self._parse_size_policy_config(size_policy)
+
+            # Log with the specified level
+            filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+            message = f"sphinx-llms-txt: Max lines ({max_lines}) exceeded for {filename}"  # noqa: E501
+
+            if log_level == "info":
+                logger.info(message)
+            else:
+                logger.warning(message)
+
+            # Handle different actions
+            if action == "skip":
+                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+                logger.info(f"sphinx-llms-txt: Skipping {filename} generation")
+                # Log summary information if requested
+                if self.config.get("llms_txt_file"):
+                    self.writer.write_verbose_info_to_file(
+                        page_order, self.collector.page_titles, total_line_count
+                    )
+                return
+            elif action == "note":
+                logger.info(f"sphinx-llms-txt: Creating placeholder {output_path}")
+                self._write_placeholder_file(output_path, max_lines)
+
+                # Log summary information if requested
+                if self.config.get("llms_txt_file"):
+                    self.writer.write_verbose_info_to_file(
+                        page_order, self.collector.page_titles, total_line_count
+                    )
+                return
+            elif action == "keep":
+                filename = self.config.get("llms_txt_full_filename", "llms-full.txt")
+                # Fall through to write the file
+
+        # Write combined file only if we have content to write
+        if content_parts:
+            success = self.writer.write_combined_file(
+                content_parts, output_path, total_line_count
             )
-
-            # Log summary information if requested
-            if self.config.get("llms_txt_file"):
-                self.writer.write_verbose_info_to_file(
-                    page_order, self.collector.page_titles, total_line_count
-                )
-
-            return
-
-        # Write combined file if limit wasn't exceeded
-        success = self.writer.write_combined_file(
-            content_parts, output_path, total_line_count
-        )
+        else:
+            success = False
 
         # Log summary information if requested
         if success and self.config.get("llms_txt_file"):
@@ -813,3 +869,72 @@ class LLMSFullManager:
             # Recursively handle subdirectories
             if subtree is not None:  # It's a directory
                 self._format_tree_node(subtree, lines, next_prefix, False)
+
+    def _parse_size_policy_config(self, size_policy: str) -> tuple[str, str]:
+        """Parse the llms_txt_full_size_policy configuration value.
+
+        Args:
+            size_policy: Configuration string in format "loglevel_action"
+
+        Returns:
+            Tuple of (log_level, action) where:
+            - log_level is "warn" or "info"
+            - action is "keep", "skip", or "note"
+        """
+        if not size_policy or "_" not in size_policy:
+            logger.warning(
+                f"sphinx-llms-txt: Invalid llms_txt_full_size_policy "
+                f"format: '{size_policy}'. "
+                f"Using default 'warn_skip'."
+            )
+            return "warn", "skip"
+
+        parts = size_policy.split("_", 1)  # Split on first underscore only
+        log_level, action = parts[0], parts[1]
+
+        # Validate log level
+        if log_level not in ["warn", "info"]:
+            logger.warning(
+                f"sphinx-llms-txt: Invalid log level '{log_level}' in "
+                f"llms_txt_full_size_policy. "
+                f"Valid options: warn, info. Using 'warn'."
+            )
+            log_level = "warn"
+
+        # Validate action
+        if action not in ["keep", "skip", "note"]:
+            logger.warning(
+                f"sphinx-llms-txt: Invalid action '{action}' in "
+                f"llms_txt_full_size_policy. "
+                f"Valid options: keep, skip, note. Using 'skip'."
+            )
+            action = "skip"
+
+        return log_level, action
+
+    def _write_placeholder_file(self, output_path: Path, max_lines: int):
+        """Write a placeholder llms-full.txt file with a note about size limit.
+
+        Args:
+            output_path: Path where the placeholder file should be written
+            max_lines: The configured maximum line limit
+        """
+        # Create the placeholder note content
+        placeholder_content = (
+            f".. This file was not generated because it exceeded the configured size limit.\n"  # noqa: E501
+            "   See the conf.py ``llms_txt_full_max_size`` and ``llms_txt_full_size_policy``\n"  # noqa: E501
+            "   for configuration options.\n"
+            "\n"
+            f"   Configured max size: {max_lines} lines\n"
+            "\n"
+            "   For more information, see: https://sphinx-llms-txt.readthedocs.io/en/latest/configuration-values.html#llms-txt-full-max-size\n"  # noqa: E501
+        )
+
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                f.write(placeholder_content)
+            logger.debug(f"sphinx-llms-txt: Wrote placeholder file: {output_path}")
+        except Exception as e:
+            logger.error(
+                f"sphinx-llms-txt: Error writing placeholder file {output_path}: {e}"
+            )

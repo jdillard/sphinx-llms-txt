@@ -12,7 +12,7 @@ from .manager import LLMSFullManager
 from .processor import DocumentProcessor
 from .writer import FileWriter
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 # Export classes needed by tests
 __all__ = [
@@ -74,6 +74,7 @@ def build_finished(app: Sphinx, exception):
             "llms_txt_full_file": app.config.llms_txt_full_file,
             "llms_txt_full_filename": app.config.llms_txt_full_filename,
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
+            "llms_txt_full_size_policy": app.config.llms_txt_full_size_policy,
             "llms_txt_directives": app.config.llms_txt_directives,
             "llms_txt_exclude": app.config.llms_txt_exclude,
             "llms_txt_code_files": app.config.llms_txt_code_files,
@@ -102,6 +103,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_full_file", True, "env")
     app.add_config_value("llms_txt_full_filename", "llms-full.txt", "env")
     app.add_config_value("llms_txt_full_max_size", None, "env")
+    app.add_config_value("llms_txt_full_size_policy", "warn_skip", "env")
     app.add_config_value("llms_txt_directives", [], "env")
     app.add_config_value("llms_txt_title", None, "env")
     app.add_config_value("llms_txt_summary", None, "env")
