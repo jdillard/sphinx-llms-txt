@@ -35,7 +35,7 @@ Project Configuration Values
    - **Default**: ``'warn_skip'``
    - **Description**: Controls what happens when :confval:`llms_txt_full_max_size` is exceeded.
      Format is ``<loglevel>_<action>``. Log levels: ``warn``, ``info``.
-     Actions: ``skip`` (don't create file), ``keep`` (create file anyway), ``note`` (create placeholder file with explanation).
+     Actions: ``skip``, ``keep``, ``note``.
      See :ref:`handling_large_documentation`.
 
    .. versionadded:: 0.5.0
