@@ -10,6 +10,12 @@ Directly install via ``pip`` by using:
 
     pip install sphinx-llms-txt
 
+Or with ``conda`` via ``conda-forge``:
+
+.. code::
+
+   conda install -c conda-forge sphinx-llms-txt
+
 Usage
 -----
 
@@ -21,6 +27,12 @@ Add the extension to your Sphinx configuration (``conf.py``):
         'sphinx_llms_txt',
     ]
 
-Once added, the extension will automatically generate the LLMs.txt files during the build process.
+After the HTML finishes building, **sphinx-llms-txt** will output the location of the output files::
+
+    sphinx-llms-txt: Created /path/to/_build/html/llms-full.txt with 45 sources and 6879 lines
+    sphinx-llms-txt: created /path/to/_build/html/llms.txt
+
+
+.. tip:: Make sure to confirm the accuracy of the output files after installs and upgrades.
 
 See :doc:`advanced-configuration` for more information about how to use **sphinx-llms-txt**.
