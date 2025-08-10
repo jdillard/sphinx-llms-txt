@@ -1,5 +1,14 @@
 """
-Sphinx extension to create a combined sources file (llms-full.txt)
+Sphinx extension that generates llms.txt and llms-full.txt files for LLM consumption.
+
+This extension collects documentation content from Sphinx projects and generates
+two output files:
+- llms.txt: A concise Markdown summary with project overview and page links
+- llms-full.txt: A comprehensive reStructuredText file containing all documentation
+  content with resolved includes and path references
+
+The extension processes content during the build phase, handles page-level and
+block-level ignore directives, and can optionally include source code files.
 """
 
 from typing import Any, Dict
