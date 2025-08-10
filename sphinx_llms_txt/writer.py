@@ -3,7 +3,7 @@ File writer module for sphinx-llms-txt.
 """
 
 from pathlib import Path
-from typing import Any, Dict, List, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from sphinx.application import Sphinx
 from sphinx.util import logging
@@ -14,7 +14,12 @@ logger = logging.getLogger(__name__)
 class FileWriter:
     """Handles writing processed content to output files."""
 
-    def __init__(self, config: Dict[str, Any], outdir: str = None, app: Sphinx = None):
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        outdir: Optional[str] = None,
+        app: Optional[Sphinx] = None,
+    ):
         self.config = config
         self.outdir = outdir
         self.app = app
@@ -47,7 +52,7 @@ class FileWriter:
 
     def write_verbose_info_to_file(
         self,
-        page_order: Union[List[str], List[Tuple[str, str]]],
+        page_order: Union[List[str], List[Tuple[str, Optional[str]]]],
         page_titles: Dict[str, str],
         total_line_count: int = 0,
     ) -> bool:
@@ -67,13 +72,13 @@ class FileWriter:
             )
             return False
 
-        output_path = Path(self.outdir) / self.config.get("llms_txt_filename")
+        output_path = Path(self.outdir) / str(self.config.get("llms_txt_filename"))
         try:
             with open(output_path, "w", encoding="utf-8") as f:
                 project_name = "llms-txt Summary"
                 # First priority: use title from config if available
                 if self.config.get("llms_txt_title"):
-                    project_name = self.config.get("llms_txt_title")
+                    project_name = str(self.config.get("llms_txt_title"))
                 # Second priority: use project name from Sphinx app if available
                 elif (
                     self.app

@@ -130,7 +130,7 @@ class DocumentProcessor:
         """
         # Get the configured path directives to process
         default_path_directives = ["image", "figure"]
-        custom_path_directives = self.config.get("llms_txt_directives")
+        custom_path_directives = self.config.get("llms_txt_directives") or []
         path_directives = set(default_path_directives + custom_path_directives)
 
         # Build the regex pattern to match all configured directives

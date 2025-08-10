@@ -3,7 +3,7 @@ Document collector module for sphinx-llms-txt.
 """
 
 import fnmatch
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from sphinx.environment import BuildEnvironment
 from sphinx.util import logging
@@ -16,8 +16,8 @@ class DocumentCollector:
 
     def __init__(self):
         self.page_titles: Dict[str, str] = {}
-        self.master_doc: str = None
-        self.env: BuildEnvironment = None
+        self.master_doc: Optional[str] = None
+        self.env: Optional[BuildEnvironment] = None
         self.config: Dict[str, Any] = {}
         self.app = None
 
@@ -60,7 +60,7 @@ class DocumentCollector:
         else:
             return [source_suffix]  # String format
 
-    def _get_docname_suffix(self, docname: str, sources_dir) -> str:
+    def _get_docname_suffix(self, docname: str, sources_dir) -> Optional[str]:
         """
         Determine the source suffix for a given docname by checking which
         file exists.
@@ -102,7 +102,7 @@ class DocumentCollector:
 
         return None
 
-    def get_page_order(self, sources_dir=None) -> List[Tuple[str, str]]:
+    def get_page_order(self, sources_dir=None) -> List[Tuple[str, Optional[str]]]:
         """Get the correct page order from the toctree structure.
 
         Args:
@@ -114,7 +114,7 @@ class DocumentCollector:
         if not self.env or not self.master_doc:
             return []
 
-        page_order = []
+        page_order: List[Tuple[str, Optional[str]]] = []
         visited = set()
 
         def collect_from_toctree(docname: str):
@@ -126,7 +126,7 @@ class DocumentCollector:
 
             # Add the current document with its suffix
             if docname not in [doc for doc, _ in page_order]:
-                suffix = None
+                suffix: Optional[str] = None
                 if sources_dir:
                     suffix = self._get_docname_suffix(docname, sources_dir)
                 page_order.append((docname, suffix))
@@ -135,18 +135,21 @@ class DocumentCollector:
             try:
                 # Look for toctree_includes which contains the direct children
                 if (
-                    hasattr(self.env, "toctree_includes")
+                    self.env
+                    and hasattr(self.env, "toctree_includes")
                     and docname in self.env.toctree_includes
                 ):
                     for child_docname in self.env.toctree_includes[docname]:
-                        collect_from_toctree(child_docname)
+                        collect_from_toctree(str(child_docname))
                 # Try to use dependencies to find related documents
                 elif (
-                    hasattr(self.env, "dependencies")
+                    self.env
+                    and hasattr(self.env, "dependencies")
                     and docname in self.env.dependencies
                 ):
                     # Extract the dependent documents from the dependencies dict
-                    for child_docname in self.env.dependencies[docname]:
+                    for child_docname_obj in self.env.dependencies[docname]:
+                        child_docname = str(child_docname_obj)
                         # Only add documents actually in the document set
                         if (
                             hasattr(self.env, "all_docs")
@@ -154,7 +157,11 @@ class DocumentCollector:
                         ):
                             collect_from_toctree(child_docname)
                 # Fallback to titles or other available references
-                elif hasattr(self.env, "titles") and hasattr(self.env, "all_docs"):
+                elif (
+                    self.env
+                    and hasattr(self.env, "titles")
+                    and hasattr(self.env, "all_docs")
+                ):
                     # Get all document names
                     all_docnames = list(self.env.all_docs.keys())
 
@@ -185,7 +192,7 @@ class DocumentCollector:
                 ]
             )
             for docname in remaining:
-                suffix = None
+                suffix: Optional[str] = None
                 if sources_dir:
                     suffix = self._get_docname_suffix(docname, sources_dir)
                 page_order.append((docname, suffix))
@@ -193,8 +200,8 @@ class DocumentCollector:
         return page_order
 
     def filter_excluded_pages(
-        self, page_order: List[Tuple[str, str]]
-    ) -> List[Tuple[str, str]]:
+        self, page_order: List[Tuple[str, Optional[str]]]
+    ) -> List[Tuple[str, Optional[str]]]:
         """Filter out excluded pages from the page order."""
         exclude_patterns = self.config.get("llms_txt_exclude")
         if exclude_patterns:
