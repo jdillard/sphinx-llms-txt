@@ -11,6 +11,10 @@ A Sphinx extension that generates a summary `llms.txt` file and a single combine
 
 See [sphinx-llms-txt documentation](https://sphinx-llms-txt.readthedocs.io/en/latest/index.html) for installation and configuration instructions.
 
+## Contributing
+
+Pull Requests welcome! See [Contributing](https://sphinx-llms-txt.readthedocs.io/en/latest/contributing.html) for instructions on how best to contribute.
+
 ## License
 
 MIT License - see LICENSE file for details.
