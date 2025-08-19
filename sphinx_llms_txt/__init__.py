@@ -129,7 +129,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     def builder_inited(app):
         """Used to limit what builders are allowed to run the extension."""
 
-        allowed_builders = ["html"]
+        allowed_builders = ["html", "singlehtml", "dirhtml"]
         if (
             hasattr(app, "builder")
             and app.builder
