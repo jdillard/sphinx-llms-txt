@@ -18,6 +18,13 @@ repos:
     hooks:
     - id: flake8
 
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+    - id: mypy
+      files: ^sphinx_llms_txt/
+      additional_dependencies: [types-docutils]
+
   - repo: https://github.com/sphinx-contrib/sphinx-lint
     rev: v1.0.0
     hooks:
