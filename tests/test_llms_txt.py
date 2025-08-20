@@ -41,6 +41,42 @@ def test_setup_returns_valid_dict():
     assert "parallel_write_safe" in result
 
 
+def test_builder_inited_with_disallowed_builder():
+    """Test that disallowed builders do not trigger extension setup."""
+    import sphinx_llms_txt
+
+    # Reset global state
+    sphinx_llms_txt._manager = sphinx_llms_txt.LLMSFullManager()
+    sphinx_llms_txt._root_first_paragraph = ""
+
+    # Mock a Sphinx app with a disallowed builder
+    class MockBuilder:
+        name = "text"  # Not in allowed list
+
+    class MockApp:
+        def __init__(self):
+            self.config_values = {}
+            self.connections = {}
+            self.builder = MockBuilder()
+
+        def add_config_value(self, name, default, rebuild):
+            self.config_values[name] = (default, rebuild)
+
+        def connect(self, event, handler):
+            self.connections[event] = handler
+
+    app = MockApp()
+    setup(app)
+
+    # Trigger builder-inited
+    builder_inited_handler = app.connections["builder-inited"]
+    builder_inited_handler(app)
+
+    # With disallowed builder, other events should NOT be connected
+    assert "doctree-resolved" not in app.connections
+    assert "build-finished" not in app.connections
+
+
 def test_document_collector_initialization():
     """Test initialization of DocumentCollector."""
     collector = DocumentCollector()
