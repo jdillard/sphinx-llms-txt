@@ -5,6 +5,7 @@ Changelog
 -----
 
 - Only allow builders that have _sources directory
+  `#38 <https://github.com/jdillard/sphinx-llms-txt/pull/38>`_
 
 0.5.0
 -----
