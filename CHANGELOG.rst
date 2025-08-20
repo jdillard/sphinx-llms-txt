@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.5.1
+-----
+
+- Only allow builders that have _sources directory
+
 0.5.0
 -----
 

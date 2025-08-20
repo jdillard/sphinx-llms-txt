@@ -21,7 +21,7 @@ from .manager import LLMSFullManager
 from .processor import DocumentProcessor
 from .writer import FileWriter
 
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 
 # Export classes needed by tests
 __all__ = [
@@ -113,7 +113,6 @@ def build_finished(app: Sphinx, exception):
 def setup(app: Sphinx) -> Dict[str, Any]:
     """Set up the Sphinx extension."""
 
-    # Add configuration options
     app.add_config_value("llms_txt_file", True, "env")
     app.add_config_value("llms_txt_filename", "llms.txt", "env")
     app.add_config_value("llms_txt_full_file", True, "env")
@@ -127,14 +126,20 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_code_files", [], "env")
     app.add_config_value("llms_txt_code_base_path", None, "env")
 
-    # Connect to Sphinx events
-    app.connect("doctree-resolved", doctree_resolved)
-    app.connect("build-finished", build_finished)
+    def builder_inited(app):
+        """Used to limit what builders are allowed to run the extension."""
 
-    # Reset manager and root paragraph for each build
-    global _manager, _root_first_paragraph
-    _manager = LLMSFullManager()
-    _root_first_paragraph = ""
+        allowed_builders = ["html", "singlehtml", "dirhtml"]
+        if hasattr(app, "builder") and app.builder.name in allowed_builders:
+            # Reset manager and root paragraph for each build
+            global _manager, _root_first_paragraph
+            _manager = LLMSFullManager()
+            _root_first_paragraph = ""
+
+            app.connect("doctree-resolved", doctree_resolved)
+            app.connect("build-finished", build_finished)
+
+    app.connect("builder-inited", builder_inited)
 
     return {
         "version": __version__,
