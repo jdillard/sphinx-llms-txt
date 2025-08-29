@@ -21,7 +21,7 @@ from .manager import LLMSFullManager
 from .processor import DocumentProcessor
 from .writer import FileWriter
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 
 # Export classes needed by tests
 __all__ = [
@@ -129,7 +129,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     def builder_inited(app):
         """Used to limit what builders are allowed to run the extension."""
 
-        allowed_builders = ["html", "singlehtml", "dirhtml"]
+        allowed_builders = ["html", "dirhtml"]
         if hasattr(app, "builder") and app.builder.name in allowed_builders:
             # Reset manager and root paragraph for each build
             global _manager, _root_first_paragraph
