@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.2
+-----
+
+- Remove support for singlehtml
+  `#40 <https://github.com/jdillard/sphinx-llms-txt/pull/40>`_
+
 0.5.1
 -----
 
