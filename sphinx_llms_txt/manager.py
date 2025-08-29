@@ -197,7 +197,6 @@ class LLMSFullManager:
         possible_sources = [
             Path(outdir) / "_sources",
             Path(outdir) / "html" / "_sources",
-            Path(outdir) / "singlehtml" / "_sources",
         ]
 
         for path in possible_sources:
