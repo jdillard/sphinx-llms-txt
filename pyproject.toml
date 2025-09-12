@@ -26,6 +26,9 @@ classifiers = [
 license = {text = "MIT"}
 readme = "README.md"
 dynamic = ["version"]
+dependencies = [
+    "sphinx",
+]
 
 [project.urls]
 download = "https://pypi.org/project/sphinx-llms-txt/"
@@ -40,7 +43,6 @@ dev = [
     "mypy",
     "isort",
     "pre-commit",
-    "sphinx",
 ]
 test = [
     "pytest>=7.0.0",
