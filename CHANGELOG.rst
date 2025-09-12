@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.5.3
+-----
+
+- Make sphinx a required dependency since it imports from Sphinx
+  `#44 <https://github.com/jdillard/sphinx-llms-txt/pull/44>`_
+
 0.5.2
 -----
 
