@@ -35,7 +35,7 @@ download = "https://pypi.org/project/sphinx-llms-txt/"
 source = "https://github.com/jdillard/sphinx-llms-txt"
 changelog = "https://github.com/jdillard/sphinx-llms-txt/blob/master/CHANGELOG.rst"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "pytest>=7.0.0",
     "black",
