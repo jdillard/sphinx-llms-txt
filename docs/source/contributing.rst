@@ -19,7 +19,7 @@ Local development
 
    .. code-block:: console
 
-      pip install -e ".[dev]"
+      pip install -e . --group dev
 
 #. Install pre-commit Git hook scripts:
 
