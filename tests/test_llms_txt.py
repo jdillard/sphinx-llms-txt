@@ -1031,3 +1031,68 @@ def test_code_files_ignored_patterns(tmp_path, caplog):
     assert (
         "Code file pattern 'docs/**/*.rst' ignored." in captured_warnings[0]
     ), f"Warning message should contain expected text. Got: {captured_warnings[0]}"
+
+
+def test_llms_txt_generated_without_sources_dir(tmp_path):
+    """Test that llms.txt is generated even when _sources directory doesn't exist."""
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create manager
+    manager = LLMSFullManager()
+
+    # Set config to enable llms.txt
+    config = {
+        "llms_txt_file": True,
+        "llms_txt_filename": "llms.txt",
+        "llms_txt_full_file": True,
+        "llms_txt_full_filename": "llms-full.txt",
+        "llms_txt_exclude": [],
+        "llms_txt_directives": [],
+    }
+    manager.set_config(config)
+
+    # Create directories (but no _sources)
+    outdir = tmp_path / "build"
+    srcdir = tmp_path / "source"
+    outdir.mkdir()
+    srcdir.mkdir()
+
+    # Mock env with documents
+    class MockEnv:
+        all_docs = {"index": None, "about": None}
+        titles = {
+            "index": type("TitleNode", (), {"astext": lambda self: "Home"})(),
+            "about": type("TitleNode", (), {"astext": lambda self: "About"})(),
+        }
+        toctree_includes = {"index": ["about"]}
+
+    manager.set_env(MockEnv())
+    manager.set_master_doc("index")
+
+    # Update page titles directly in the collector
+    manager.update_page_title("index", "Home")
+    manager.update_page_title("about", "About")
+
+    # Call combine_sources - should generate llms.txt even without _sources
+    manager.combine_sources(str(outdir), str(srcdir))
+
+    # Verify llms.txt was created
+    llms_txt = outdir / "llms.txt"
+    assert llms_txt.exists(), "llms.txt should be generated even without _sources"
+
+    # Verify llms-full.txt was NOT created (since no _sources)
+    llms_full_txt = outdir / "llms-full.txt"
+    assert (
+        not llms_full_txt.exists()
+    ), "llms-full.txt should not be generated without _sources"
+
+    # Read llms.txt and verify it has content
+    with open(llms_txt, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Should contain page titles and links
+    assert "Home" in content
+    assert "About" in content
+    assert "index.html" in content
+    assert "about.html" in content

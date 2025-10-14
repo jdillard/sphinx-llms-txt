@@ -204,25 +204,32 @@ class LLMSFullManager:
                 sources_dir = path
                 break
 
-        if not sources_dir:
-            logger.warning(
-                "Could not find _sources directory, skipping llms-full creation"
-            )
-            return
-
-        # Get the correct page order with source suffixes
+        # Get the correct page order (with or without source suffixes)
         page_order = self.collector.get_page_order(sources_dir)
 
         if not page_order:
-            logger.warning(
-                "Could not determine page order, skipping llms-full creation"
-            )
+            logger.warning("Could not determine page order, skipping file generation")
             return
 
         # Apply exclusion filter if configured
         page_order = self.collector.filter_excluded_pages(page_order)
 
-        # Determine output file name and location
+        # If no sources directory, only generate llms.txt and return early
+        if not sources_dir:
+            logger.warning(
+                "Could not find _sources directory, skipping llms-full.txt creation"
+            )
+            # Generate llms.txt if requested
+            if self.config.get("llms_txt_file"):
+                filtered_page_order = self._filter_ignored_pages(page_order)
+                self.writer.write_verbose_info_to_file(
+                    filtered_page_order,
+                    self.collector.page_titles,
+                    0,  # No line count since no llms-full.txt
+                )
+            return
+
+        # Determine output file name and location for llms-full.txt
         output_filename = self.config.get("llms_txt_full_filename")
         output_path = Path(outdir) / output_filename
 
