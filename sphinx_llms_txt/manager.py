@@ -216,9 +216,6 @@ class LLMSFullManager:
 
         # If no sources directory, only generate llms.txt and return early
         if not sources_dir:
-            logger.warning(
-                "Could not find _sources directory, skipping llms-full.txt creation"
-            )
             # Generate llms.txt if requested
             if self.config.get("llms_txt_file"):
                 filtered_page_order = self._filter_ignored_pages(page_order)
@@ -226,6 +223,12 @@ class LLMSFullManager:
                     filtered_page_order,
                     self.collector.page_titles,
                     0,  # No line count since no llms-full.txt
+                )
+
+            # Only warn if user explicitly wants llms-full.txt
+            if self.config.get("llms_txt_full_file"):
+                logger.warning(
+                    "Could not find _sources directory, skipping llms-full.txt creation"
                 )
             return
 

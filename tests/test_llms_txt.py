@@ -1096,3 +1096,63 @@ def test_llms_txt_generated_without_sources_dir(tmp_path):
     assert "About" in content
     assert "index.html" in content
     assert "about.html" in content
+
+
+def test_llms_txt_no_warning_when_full_file_disabled(tmp_path, caplog):
+    """
+    Test that no warning is logged when llms_txt_full_file=False and
+    _sources doesn't exist.
+    """
+    from unittest.mock import patch
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    # Create manager
+    manager = LLMSFullManager()
+
+    # Set config with llms_txt_full_file=False
+    config = {
+        "llms_txt_file": True,
+        "llms_txt_filename": "llms.txt",
+        "llms_txt_full_file": False,  # User doesn't want llms-full.txt
+        "llms_txt_full_filename": "llms-full.txt",
+        "llms_txt_exclude": [],
+        "llms_txt_directives": [],
+    }
+    manager.set_config(config)
+
+    # Create directories (but no _sources)
+    outdir = tmp_path / "build"
+    srcdir = tmp_path / "source"
+    outdir.mkdir()
+    srcdir.mkdir()
+
+    # Mock env with documents
+    class MockEnv:
+        all_docs = {"index": None}
+        titles = {"index": type("TitleNode", (), {"astext": lambda self: "Home"})()}
+        toctree_includes = {"index": []}
+
+    manager.set_env(MockEnv())
+    manager.set_master_doc("index")
+    manager.update_page_title("index", "Home")
+
+    # Capture warnings
+    captured_warnings = []
+
+    def capture_warning(message, *args, **kwargs):
+        if "_sources" in str(message):
+            captured_warnings.append(message)
+
+    with patch("sphinx_llms_txt.manager.logger.warning", side_effect=capture_warning):
+        # Call combine_sources
+        manager.combine_sources(str(outdir), str(srcdir))
+
+    # Verify NO warning was logged since llms_txt_full_file=False
+    assert (
+        len(captured_warnings) == 0
+    ), "No warning should be logged when llms_txt_full_file=False"
+
+    # Verify llms.txt was still created
+    llms_txt = outdir / "llms.txt"
+    assert llms_txt.exists()
