@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.6.0
+-----
+
+- Improve _sources directory handling
+  `#47 <https://github.com/jdillard/sphinx-llms-txt/pull/47>`_
+
 0.5.3
 -----
 
