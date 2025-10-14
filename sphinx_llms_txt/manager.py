@@ -228,7 +228,7 @@ class LLMSFullManager:
             # Only warn if user explicitly wants llms-full.txt
             if self.config.get("llms_txt_full_file"):
                 # Check if html_copy_source is False
-                if not self.app.config.html_copy_source:
+                if self.app and not self.app.config.html_copy_source:
                     logger.warning(
                         "Could not find _sources directory, skipping llms-full.txt."
                         "Set html_copy_source = True in conf.py to enable."
