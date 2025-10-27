@@ -89,7 +89,7 @@ html_theme_options = {
     "source_directory": "docs/source/",
 }
 
-html_baseurl = "https://sphinx-llms-txt.readthedocs.org/"
+html_baseurl = "https://sphinx-llms-txt.readthedocs.org/en/latest/"
 
 
 # -- Options for HTMLHelp output ---------------------------------------------
