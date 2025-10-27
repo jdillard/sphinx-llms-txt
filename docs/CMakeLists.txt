@@ -3,7 +3,7 @@ include(SetupSphinx)
 setup_sphinx_environment()
 
 set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(SPHINX_BUILD ${CMAKE_BINARY_DIR}/docs)
+set(SPHINX_BUILD ${CMAKE_BINARY_DIR})
 
 # Build HTML documentation
 add_custom_target(html

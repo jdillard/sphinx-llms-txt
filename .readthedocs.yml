@@ -6,6 +6,8 @@ build:
     python: "3.13"
   commands:
     - pip install cmake
+    - pip install -r docs/requirements.txt
+    - pip install -e .
     - cmake --workflow --preset documentation-workflow
     # Copy built documentation to Read the Docs output directory
     - mkdir -p $READTHEDOCS_OUTPUT/html
