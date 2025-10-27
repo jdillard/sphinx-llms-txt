@@ -28,39 +28,38 @@ class FileWriter:
         Returns:
             The template string to use for generating URIs
         """
-        # Step 1: Check if _sources directory exists globally
-        if not sources_dir:
-            # No _sources: Use HTML template for all pages
-            return "{base_url}{docname}.html"
+        # Step 1: Check if user has configured a custom template
+        user_template = self.config.get("llms_txt_uri_template")
 
-        # Step 2: Try user's configured template
-        user_template = self.config.get(
-            "llms_txt_uri_template",
-            "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}",
-        )
+        if user_template:
+            # Validate user's template by checking for valid variable names
+            # Valid variables: base_url, docname, suffix, sourcelink_suffix
+            try:
+                # Try formatting with test values to validate syntax
+                test_values = {
+                    "base_url": "http://example.com/",
+                    "docname": "test",
+                    "suffix": ".rst",
+                    "sourcelink_suffix": ".txt",
+                }
+                user_template.format(**test_values)
+                # Template is valid, use it
+                return user_template
+            except (KeyError, ValueError) as e:
+                # Template has invalid variables or syntax
+                logger.warning(
+                    f"sphinx-llms-txt: Invalid llms_txt_uri_template: {e}. "
+                    f"Falling back to default."
+                )
+                # Fall through to default logic below
 
-        # Validate user's template by checking for valid variable names
-        # Valid variables: base_url, docname, suffix, sourcelink_suffix
-        try:
-            # Try formatting with test values to validate syntax
-            test_values = {
-                "base_url": "http://example.com/",
-                "docname": "test",
-                "suffix": ".rst",
-                "sourcelink_suffix": ".txt",
-            }
-            user_template.format(**test_values)
-            # Template is valid, use it
-            return user_template
-        except (KeyError, ValueError) as e:
-            # Template has invalid variables or syntax
-            logger.warning(
-                f"sphinx-llms-txt: Invalid llms_txt_uri_template: {e}. "
-                f"Falling back to default."
-            )
-            # If _sources exists, use default sources template
-            # (we already checked sources_dir exists above)
+        # Step 2: Use default template based on whether _sources exists
+        if sources_dir:
+            # _sources exists: Use sources template
             return "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+        else:
+            # No _sources: Use HTML template
+            return "{base_url}{docname}.html"
 
     def write_combined_file(
         self, content_parts: List[str], output_path: Path, total_line_count: int
