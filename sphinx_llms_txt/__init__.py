@@ -107,7 +107,7 @@ def build_finished(app: Sphinx, exception):
                     _manager.update_page_title(docname, title)
 
         # Create the combined file
-        _manager.combine_sources(app.outdir, app.srcdir)
+        _manager.combine_sources(str(app.outdir), str(app.srcdir))
 
 
 def setup(app: Sphinx) -> Dict[str, Any]:

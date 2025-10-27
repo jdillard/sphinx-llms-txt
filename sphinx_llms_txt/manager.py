@@ -5,7 +5,7 @@ Main manager module for sphinx-llms-txt.
 import glob
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
 
 from sphinx.application import Sphinx
 from sphinx.environment import BuildEnvironment
@@ -150,8 +150,8 @@ class LLMSFullManager:
         self.ignored_pages.add(docname)
 
     def _filter_ignored_pages(
-        self, page_order: Union[List[str], List[Tuple[str, str]]]
-    ) -> Union[List[str], List[Tuple[str, str]]]:
+        self, page_order: Union[List[str], List[Tuple[str, Optional[str]]]]
+    ) -> Union[List[str], List[Tuple[str, Optional[str]]]]:
         """Filter out ignored pages from page_order."""
         filtered_pages = []
         for item in page_order:
@@ -164,7 +164,7 @@ class LLMSFullManager:
             if docname not in self.ignored_pages:
                 filtered_pages.append(item)
 
-        return filtered_pages
+        return cast(Union[List[str], List[Tuple[str, Optional[str]]]], filtered_pages)
 
     def set_config(self, config: Dict[str, Any]):
         """Set configuration options."""
@@ -241,7 +241,7 @@ class LLMSFullManager:
 
         # Determine output file name and location for llms-full.txt
         output_filename = self.config.get("llms_txt_full_filename")
-        output_path = Path(outdir) / output_filename
+        output_path = Path(outdir) / str(output_filename)
 
         # Log discovered files and page order
         logger.debug(f"sphinx-llms-txt: Page order (after exclusion): {page_order}")
@@ -302,7 +302,7 @@ class LLMSFullManager:
         content_parts = []
 
         # Track code files for later processing
-        code_file_parts = []
+        code_file_parts: List[str] = []
 
         # Count lines in code files (initially 0)
         code_files_line_count = 0
@@ -381,7 +381,7 @@ class LLMSFullManager:
         if not (size_limit_exceeded and should_abort_early):
             # Get all source files in the _sources directory using configured suffixes
             source_suffixes = self._get_source_suffixes()
-            all_source_files = []
+            all_source_files: List[Path] = []
             for src_suffix in source_suffixes:
                 # Avoid duplicate extensions when source_suffix == source_link_suffix
                 if src_suffix == source_link_suffix:
@@ -751,9 +751,9 @@ class LLMSFullManager:
                                 title = Path(title_str[len(base_path) :])
                     except ValueError:
                         # File is not relative to srcdir, use filename
-                        title = file_path.name
+                        title = Path(file_path.name)
                 else:
-                    title = file_path.name
+                    title = Path(file_path.name)
 
                 # Format as code block with equals underline
                 title_str = str(title)
@@ -785,7 +785,9 @@ class LLMSFullManager:
 
         return code_parts, sorted(processed_files)
 
-    def _create_code_files_section_header(self, file_paths: List[Path] = None) -> str:
+    def _create_code_files_section_header(
+        self, file_paths: Optional[List[Path]] = None
+    ) -> str:
         """Create the section header for source code files.
 
         Args:
@@ -833,7 +835,7 @@ class LLMSFullManager:
             return ""
 
         # Convert to relative paths if possible and create tree structure
-        tree_data = {}
+        tree_data: Dict[str, Any] = {}
 
         for file_path in sorted(file_paths):
             # Get relative path from source directory for display
@@ -886,7 +888,7 @@ class LLMSFullManager:
                 current[parts[-1]] = None  # None indicates it's a file
 
         # Convert tree structure to string representation
-        lines = []
+        lines: List[str] = []
         self._format_tree_node(tree_data, lines, "", True)
 
         # Indent each line for reStructuredText code block
