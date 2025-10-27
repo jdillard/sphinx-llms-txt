@@ -2,9 +2,8 @@
 
 # Function to setup Python virtual environment and install Sphinx
 function(setup_sphinx_environment)
-    set(VENV_DIR "${CMAKE_SOURCE_DIR}/.docs-venv")
+    set(VENV_DIR "${CMAKE_SOURCE_DIR}/.venv")
     set(REQUIREMENTS_FILE "${CMAKE_SOURCE_DIR}/docs/requirements.txt")
-    set(REQUIREMENTS_STAMP "${CMAKE_BINARY_DIR}/requirements.stamp")
 
     set(PYTHON_EXECUTABLE "python3")
     set(VENV_PYTHON "${VENV_DIR}/bin/python")
@@ -44,64 +43,31 @@ function(setup_sphinx_environment)
         message(STATUS "Using existing virtual environment at: ${VENV_DIR}")
     endif()
 
-    # Check if requirements.txt has changed
-    set(NEED_INSTALL FALSE)
+    # Install dependencies
+    message(STATUS "Upgrading pip...")
+    execute_process(
+        COMMAND "${VENV_PYTHON}" -m pip install --upgrade pip
+        OUTPUT_QUIET
+        ERROR_QUIET
+    )
 
-    if(NOT EXISTS "${REQUIREMENTS_STAMP}")
-        set(NEED_INSTALL TRUE)
-        message(STATUS "No requirements stamp found - will install dependencies")
-    elseif("${REQUIREMENTS_FILE}" IS_NEWER_THAN "${REQUIREMENTS_STAMP}")
-        set(NEED_INSTALL TRUE)
-        message(STATUS "requirements.txt has changed - will reinstall dependencies")
-    else()
-        message(STATUS "Dependencies are up to date")
-    endif()
+    # Install the package in editable mode along with other dependencies
+    message(STATUS "Installing Sphinx dependencies from requirements.txt...")
+    execute_process(
+        COMMAND "${VENV_PYTHON}" -m pip install -r "${REQUIREMENTS_FILE}"
+        RESULT_VARIABLE PIP_INSTALL_RESULT
+        OUTPUT_VARIABLE PIP_OUTPUT
+        ERROR_VARIABLE PIP_ERROR
+    )
 
-    # Install/upgrade pip and dependencies only if needed
-    if(NEED_INSTALL)
-        message(STATUS "Upgrading pip...")
-        execute_process(
-            COMMAND "${VENV_PYTHON}" -m pip install --upgrade pip
-            OUTPUT_QUIET
-            ERROR_QUIET
-        )
-
-        # Install the package in editable mode along with other dependencies
-        if(EXISTS "${REQUIREMENTS_FILE}")
-            message(STATUS "Installing Sphinx dependencies from requirements.txt...")
-            execute_process(
-                COMMAND "${VENV_PYTHON}" -m pip install -r "${REQUIREMENTS_FILE}"
-                RESULT_VARIABLE PIP_INSTALL_RESULT
-                OUTPUT_VARIABLE PIP_OUTPUT
-                ERROR_VARIABLE PIP_ERROR
-            )
-
-            if(NOT PIP_INSTALL_RESULT EQUAL 0)
-                message(WARNING "Failed to install some dependencies:\n${PIP_ERROR}")
-            else()
-                message(STATUS "Sphinx dependencies installed successfully")
-            endif()
-        else()
-            message(WARNING "requirements.txt not found at: ${REQUIREMENTS_FILE}")
-        endif()
-
-        # Install the package in editable mode
-        message(STATUS "Installing sphinx-llms-txt in editable mode...")
-        execute_process(
-            COMMAND "${VENV_PYTHON}" -m pip install -e "${CMAKE_SOURCE_DIR}"
-            RESULT_VARIABLE PIP_INSTALL_RESULT
-            OUTPUT_VARIABLE PIP_OUTPUT
-            ERROR_VARIABLE PIP_ERROR
-        )
-
-        if(NOT PIP_INSTALL_RESULT EQUAL 0)
-            message(WARNING "Failed to install sphinx-llms-txt:\n${PIP_ERROR}")
-        else()
-            message(STATUS "sphinx-llms-txt installed successfully")
-            # Create stamp file to mark successful installation
-            file(TOUCH "${REQUIREMENTS_STAMP}")
-        endif()
-    endif()
+    # Install the package in editable mode
+    message(STATUS "Installing sphinx-llms-txt in editable mode...")
+    execute_process(
+        COMMAND "${VENV_PYTHON}" -m pip install -e "${CMAKE_SOURCE_DIR}"
+        RESULT_VARIABLE PIP_INSTALL_RESULT
+        OUTPUT_VARIABLE PIP_OUTPUT
+        ERROR_VARIABLE PIP_ERROR
+    )
 
     # Verify Sphinx installation
     if(EXISTS "${VENV_SPHINX}")
@@ -122,11 +88,4 @@ function(setup_sphinx_environment)
 
     # Export Python executable to parent scope
     set(SPHINX_PYTHON_EXECUTABLE "${VENV_PYTHON}" PARENT_SCOPE)
-
-    # Track requirements.txt changes to trigger CMake reconfiguration
-    configure_file(
-        "${REQUIREMENTS_FILE}"
-        "${CMAKE_BINARY_DIR}/requirements.txt.tracked"
-        COPYONLY
-    )
 endfunction()
