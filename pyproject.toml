@@ -48,6 +48,8 @@ test = [
     "pytest>=7.0.0",
 ]
 
+[tool.setuptools]
+  packages = ["sphinx_llms_txt"]
 
 [tool.setuptools.dynamic]
 version = {attr = "sphinx_llms_txt.__version__"}
