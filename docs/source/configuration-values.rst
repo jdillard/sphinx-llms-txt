@@ -66,7 +66,7 @@ Project Configuration Values
      Available variables: ``{base_url}``, ``{docname}``, ``{suffix}``, ``{sourcelink_suffix}``.
      See :ref:`customizing_uri_links`.
 
-   .. versionadded:: 0.6.0
+   .. versionadded:: 0.7.0
 
 .. confval:: llms_txt_directives
 
