@@ -63,7 +63,6 @@ Project Configuration Values
    - **Type**: string
    - **Default**: ``"{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"``
    - **Description**: Template string for generating URIs in ``llms.txt``.
-     Available variables: ``{base_url}``, ``{docname}``, ``{suffix}``, ``{sourcelink_suffix}``.
      See :ref:`customizing_uri_links`.
 
    .. versionadded:: 0.7.0
