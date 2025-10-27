@@ -322,7 +322,7 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    This is a comprehensive documentation set for our project.
    It includes API references, usage examples, and tutorials.
    """
-   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+   llms_txt_uri_template = "{base_url}{docname}.md"
 
    # Path handling
    html_baseurl = "https://docs.example.com/"
