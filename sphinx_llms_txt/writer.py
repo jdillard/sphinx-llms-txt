@@ -28,37 +28,31 @@ class FileWriter:
         Returns:
             The template string to use for generating URIs
         """
-        # Step 1: Check if user has configured a custom template
-        user_template = self.config.get("llms_txt_uri_template")
+        # If custom template exists
+        custom_template = self.config.get("llms_txt_uri_template")
 
-        if user_template:
+        if custom_template:
             # Validate user's template by checking for valid variable names
-            # Valid variables: base_url, docname, suffix, sourcelink_suffix
             try:
-                # Try formatting with test values to validate syntax
+                # Try formatting with test valid values to validate syntax
                 test_values = {
                     "base_url": "http://example.com/",
                     "docname": "test",
                     "suffix": ".rst",
                     "sourcelink_suffix": ".txt",
                 }
-                user_template.format(**test_values)
-                # Template is valid, use it
-                return user_template
+                custom_template.format(**test_values)
+                return custom_template
             except (KeyError, ValueError) as e:
-                # Template has invalid variables or syntax
                 logger.warning(
                     f"sphinx-llms-txt: Invalid llms_txt_uri_template: {e}. "
                     f"Falling back to default."
                 )
-                # Fall through to default logic below
 
-        # Step 2: Use default template based on whether _sources exists
+        # Else, use one of the default templates
         if sources_dir:
-            # _sources exists: Use sources template
             return "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
         else:
-            # No _sources: Use HTML template
             return "{base_url}{docname}.html"
 
     def write_combined_file(
@@ -169,22 +163,12 @@ class FileWriter:
 
                     title = page_titles.get(docname, docname)
 
-                    # Format the URI using the resolved template
-                    # Step 3: Apply the chosen template (no per-page checks)
-                    try:
-                        uri = uri_template.format(
-                            base_url=base_url,
-                            docname=docname,
-                            suffix=suffix or "",
-                            sourcelink_suffix=sourcelink_suffix,
-                        )
-                    except (KeyError, ValueError) as e:
-                        # Should not happen after validation, but fallback just in case
-                        logger.warning(
-                            f"sphinx-llms-txt: Error formatting URI for "
-                            f"{docname}: {e}. Using HTML fallback."
-                        )
-                        uri = f"{base_url}{docname}.html"
+                    uri = uri_template.format(
+                        base_url=base_url,
+                        docname=docname,
+                        suffix=suffix or "",
+                        sourcelink_suffix=sourcelink_suffix,
+                    )
 
                     f.write(f"- [{title}]({uri})\n")
 
