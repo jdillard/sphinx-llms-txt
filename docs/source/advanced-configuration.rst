@@ -261,6 +261,101 @@ If you want to include absolute URLs for resources in your documentation, you ca
 
 When this option is set, all resolved paths in directives will be prefixed with this URL, creating absolute paths in the generated files.
 
+.. _customizing_uri_links:
+
+Customizing URI Links in llms.txt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the ``llms.txt`` file links to source files in the ``_sources`` directory when available, falling back to HTML pages when sources aren't available. You can customize this behavior using URI templates.
+
+.. _uri_template_basics:
+
+URI Template Basics
+~~~~~~~~~~~~~~~~~~~
+
+The :confval:`llms_txt_uri_template` configuration option controls how links are generated in ``llms.txt``:
+
+.. code-block:: python
+
+   # Default: Link to source files
+   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+
+   # Link to HTML pages instead
+   llms_txt_uri_template = "{base_url}{docname}.html"
+
+   # Link to a custom documentation API
+   llms_txt_uri_template = "{base_url}api/docs/{docname}"
+
+.. _available_template_variables:
+
+Available Template Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your URI template can use the following variables:
+
+- ``{base_url}`` - The base URL from ``html_baseurl`` configuration (includes trailing slash)
+- ``{docname}`` - The document name (e.g., ``index``, ``guide/intro``)
+- ``{suffix}`` - The source file suffix (e.g., ``.rst``, ``.md``) - may be empty if no source file exists
+- ``{sourcelink_suffix}`` - The suffix from ``html_sourcelink_suffix`` configuration (e.g., ``.txt``)
+
+.. _template_resolution_logic:
+
+Template Resolution Logic
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The extension determines which template to use based on the following logic:
+
+1. **Check if _sources directory exists:**
+
+   - If **no** ``_sources`` directory: Use ``{base_url}{docname}.html`` for all pages
+   - If ``_sources`` **exists**: Proceed to step 2
+
+2. **Validate your configured template:**
+
+   - Try to use your configured template
+   - If invalid (undefined variable or syntax error): Fall back to default sources template
+
+3. **Apply the chosen template to all pages**
+
+.. note::
+   Template resolution happens once globally for all documentation pages. If a variable is ``None`` for a specific page (e.g., ``{suffix}`` when the source doesn't exist), it will be replaced with an empty string, which may result in broken links. This is intentional - you have full control over the template.
+
+.. _uri_template_examples:
+
+URI Template Examples
+~~~~~~~~~~~~~~~~~~~~~
+
+**Link to HTML pages only:**
+
+.. code-block:: python
+
+   llms_txt_uri_template = "{base_url}{docname}.html"
+
+This ignores ``_sources`` files and always links to the rendered HTML pages.
+
+**Link to raw source files in a custom location:**
+
+.. code-block:: python
+
+   llms_txt_uri_template = "{base_url}raw/{docname}.rst"
+
+This assumes you've deployed your source files to a ``/raw/`` directory.
+
+**Handle the .txt.txt duplication issue:**
+
+If both ``suffix`` and ``sourcelink_suffix`` are ``.txt``, you might get ``index.txt.txt``. You can work around this by using only one:
+
+.. code-block:: python
+
+   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}"
+
+Or by using a custom ``html_sourcelink_suffix``:
+
+.. code-block:: python
+
+   html_sourcelink_suffix = ".source"
+   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+
 .. _integration_examples:
 
 Integration Examples
@@ -285,6 +380,7 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    This is a comprehensive documentation set for our project.
    It includes API references, usage examples, and tutorials.
    """
+   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
 
    # Path handling
    html_baseurl = "https://docs.example.com/"
