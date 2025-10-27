@@ -1,26 +1,24 @@
-# Setup Sphinx environment
+# Find Sphinx
 include(SetupSphinx)
 setup_sphinx_environment()
 
-set(SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/source)
-set(BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
+set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/source)
+set(SPHINX_BUILD ${CMAKE_BINARY_DIR}/docs)
 
-# Custom target to build HTML documentation
+# Build HTML documentation
 add_custom_target(html
-    COMMAND ${SPHINX_EXECUTABLE} -b html
-    ${SOURCE_DIR} ${BUILD_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${SPHINX_EXECUTABLE} -b html ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    COMMENT "Building HTML documentation"
     VERBATIM
 )
 
-# Custom target to build markdown documentation
+# Build markdown documentation
 add_custom_target(markdown
-    COMMAND ${SPHINX_EXECUTABLE} -b markdown
-    ${SOURCE_DIR} ${BUILD_DIR}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND ${SPHINX_EXECUTABLE} -b markdown ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    COMMENT "Building Markdown documentation"
     VERBATIM
 )
 
-# Target to build both in parallel (when invoked with cmake --build . --target docs)
-add_custom_target(docs)
+# Build both formats
+add_custom_target(docs ALL)
 add_dependencies(docs html markdown)
