@@ -11,4 +11,6 @@ build:
     - cmake --workflow --preset documentation-workflow
     # Copy built documentation to Read the Docs output directory
     - mkdir -p $READTHEDOCS_OUTPUT/html
-    - cp -r build/* $READTHEDOCS_OUTPUT/html/
+    - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
+    - cp -r build/markdown/* $READTHEDOCS_OUTPUT/html/
+    - cp build/singlemarkdown/index.md $READTHEDOCS_OUTPUT/html/llms-full.txt

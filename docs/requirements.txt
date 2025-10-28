@@ -4,4 +4,4 @@ sphinx-contributors
 sphinx
 sphinx-llms-txt
 sphinxext-opengraph
-sphinx-markdown-builder
+sphinx-markdown-builder @ git+https://github.com/akaihola/sphinx-markdown-builder.git@singlemarkdown
