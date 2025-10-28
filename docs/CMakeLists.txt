@@ -13,9 +13,6 @@ function(add_sphinx_builder builder_name)
     )
 endfunction()
 
-# Build all formats
-add_custom_target(docs ALL)
-add_dependencies(docs html markdown singlemarkdown)
 # Add builder targets
 add_sphinx_builder(html)
 add_sphinx_builder(markdown)
