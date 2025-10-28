@@ -1,5 +1,5 @@
 # Find Sphinx
-include(SetupSphinx)
+include(SphinxUtils)
 setup_sphinx_environment()
 
 # Add builder targets
