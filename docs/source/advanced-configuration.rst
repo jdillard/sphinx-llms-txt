@@ -266,14 +266,8 @@ When this option is set, all resolved paths in directives will be prefixed with 
 Customizing URI Links in llms.txt
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-By default, the ``llms.txt`` file links to source files in the ``_sources`` directory when available, falling back to HTML pages when sources aren't available. You can customize this behavior using URI templates.
-
-.. _uri_template_basics:
-
-URI Template Basics
-~~~~~~~~~~~~~~~~~~~
-
-The :confval:`llms_txt_uri_template` configuration option controls how links are generated in ``llms.txt``:
+By default, the ``llms.txt`` file links to source files in the ``_sources`` directory when available, falling back to HTML pages when sources aren't available.
+You can customize this behavior using URI templates with :confval:`llms_txt_uri_template`:
 
 .. code-block:: python
 
