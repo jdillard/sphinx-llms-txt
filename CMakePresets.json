@@ -22,10 +22,16 @@
       "targets": ["markdown"]
     },
     {
+      "name": "singlemarkdown",
+      "displayName": "Build Single Markdown Documentation",
+      "configurePreset": "documentation",
+      "targets": ["singlemarkdown"]
+    },
+    {
       "name": "docs-parallel",
       "displayName": "Build HTML and Markdown in parallel",
       "configurePreset": "documentation",
-      "targets": ["html", "markdown"]
+      "targets": ["html", "markdown", "singlemarkdown"]
     }
   ],
   "workflowPresets": [
