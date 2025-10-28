@@ -794,9 +794,7 @@ def test_summary_default_uses_first_paragraph():
             llms_txt_summary = None  # Not configured
             llms_txt_file = True
             llms_txt_filename = "llms.txt"
-            llms_txt_uri_template = (
-                "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
-            )
+            llms_txt_uri_template = None
             llms_txt_title = None
             llms_txt_full_file = True
             llms_txt_full_filename = "llms-full.txt"
