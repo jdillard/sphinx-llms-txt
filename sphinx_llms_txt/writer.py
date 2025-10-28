@@ -19,6 +19,42 @@ class FileWriter:
         self.outdir = outdir
         self.app = app
 
+    def _resolve_uri_template(self, sources_dir: Path = None) -> str:
+        """Resolve which URI template to use based on configuration and sources_dir.
+
+        Args:
+            sources_dir: Path to _sources directory (None if not found)
+
+        Returns:
+            The template string to use for generating URIs
+        """
+        # If custom template exists
+        custom_template = self.config.get("llms_txt_uri_template")
+
+        if custom_template:
+            # Validate user's template by checking for valid variable names
+            try:
+                # Try formatting with test valid values to validate syntax
+                test_values = {
+                    "base_url": "http://example.com/",
+                    "docname": "test",
+                    "suffix": ".rst",
+                    "sourcelink_suffix": ".txt",
+                }
+                custom_template.format(**test_values)
+                return custom_template
+            except (KeyError, ValueError) as e:
+                logger.warning(
+                    f"sphinx-llms-txt: Invalid llms_txt_uri_template: {e}. "
+                    f"Falling back to default."
+                )
+
+        # Else, use one of the default templates
+        if sources_dir:
+            return "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+        else:
+            return "{base_url}{docname}.html"
+
     def write_combined_file(
         self, content_parts: List[str], output_path: Path, total_line_count: int
     ) -> bool:
@@ -50,6 +86,7 @@ class FileWriter:
         page_order: Union[List[str], List[Tuple[str, str]]],
         page_titles: Dict[str, str],
         total_line_count: int = 0,
+        sources_dir: Path = None,
     ) -> bool:
         """Write summary information to the llms.txt file.
 
@@ -57,6 +94,7 @@ class FileWriter:
             page_order: Ordered list of document names or (docname, suffix) tuples
             page_titles: Dictionary mapping docnames to titles
             total_line_count: Total number of lines in the combined content
+            sources_dir: Path to _sources directory (None if not found)
 
         Returns:
             True if successful, False otherwise
@@ -102,14 +140,37 @@ class FileWriter:
                 if not base_url.endswith("/"):
                     base_url += "/"
 
+                # Get sourcelink suffix from Sphinx config
+                sourcelink_suffix = ""
+                if self.app and hasattr(self.app.config, "html_sourcelink_suffix"):
+                    sourcelink_suffix = self.app.config.html_sourcelink_suffix
+                    # Handle empty string case specially
+                    if sourcelink_suffix == "":
+                        sourcelink_suffix = ""  # Keep it empty
+                    elif not sourcelink_suffix.startswith("."):
+                        sourcelink_suffix = "." + sourcelink_suffix
+
+                # Resolve which template to use
+                uri_template = self._resolve_uri_template(sources_dir)
+
                 for item in page_order:
                     # Handle both old format (str) and new format (tuple)
                     if isinstance(item, tuple):
-                        docname, _ = item
+                        docname, suffix = item
                     else:
                         docname = item
+                        suffix = None
+
                     title = page_titles.get(docname, docname)
-                    f.write(f"- [{title}]({base_url}{docname}.html)\n")
+
+                    uri = uri_template.format(
+                        base_url=base_url,
+                        docname=docname,
+                        suffix=suffix or "",
+                        sourcelink_suffix=sourcelink_suffix,
+                    )
+
+                    f.write(f"- [{title}]({uri})\n")
 
             logger.info(f"sphinx-llms-txt: created {output_path}")
             return True

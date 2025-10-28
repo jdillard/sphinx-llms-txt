@@ -15,6 +15,7 @@ import subprocess
 project = "sphinx-llms-txt"
 copyright = "Jared Dillard"
 author = "Jared Dillard"
+llms_txt_uri_template = "{base_url}{docname}.md"
 llms_txt_code_files = ["+:../../sphinx_llms_txt/*.py"]
 llms_txt_summary = """
 A Sphinx extension that generates a summary llms.txt file,written in Markdown,
@@ -88,7 +89,7 @@ html_theme_options = {
     "source_directory": "docs/source/",
 }
 
-html_baseurl = "https://sphinx-llms-txt.readthedocs.org/"
+html_baseurl = "https://sphinx-llms-txt.readthedocs.org/en/latest/"
 
 
 # -- Options for HTMLHelp output ---------------------------------------------

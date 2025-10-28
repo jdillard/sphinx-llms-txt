@@ -261,6 +261,37 @@ If you want to include absolute URLs for resources in your documentation, you ca
 
 When this option is set, all resolved paths in directives will be prefixed with this URL, creating absolute paths in the generated files.
 
+.. _customizing_uri_links:
+
+Customizing URI Links in llms.txt
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+By default, the ``llms.txt`` file links to source files in the ``_sources`` directory when available, falling back to HTML pages when sources aren't available.
+You can customize this behavior using URI templates with :confval:`llms_txt_uri_template`:
+
+.. code-block:: python
+
+   # Default: Link to source files, if _sources exists
+   llms_txt_uri_template = "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"
+
+   # Default: Link to HTML pages instead, if _sources doesn't exist
+   llms_txt_uri_template = "{base_url}{docname}.html"
+
+   # Manual: Link to a custom markdown build
+   llms_txt_uri_template = "{base_url}{docname}.md"
+
+.. _available_template_variables:
+
+Available Template Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Your URI template can use the following variables:
+
+- ``{base_url}`` - The base URL from ``html_baseurl`` configuration (includes trailing slash)
+- ``{docname}`` - The document name (e.g., ``index``, ``guide/intro``)
+- ``{suffix}`` - The source file suffix (e.g., ``.rst``, ``.md``) - may be empty if no source file exists
+- ``{sourcelink_suffix}`` - The suffix from ``html_sourcelink_suffix`` configuration (e.g., ``.txt``)
+
 .. _integration_examples:
 
 Integration Examples
@@ -285,6 +316,7 @@ Here's a complete example showing multiple :doc:`configuration-values`:
    This is a comprehensive documentation set for our project.
    It includes API references, usage examples, and tutorials.
    """
+   llms_txt_uri_template = "{base_url}{docname}.md"
 
    # Path handling
    html_baseurl = "https://docs.example.com/"

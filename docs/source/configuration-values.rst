@@ -58,6 +58,15 @@ Project Configuration Values
 
    .. versionadded:: 0.2.0
 
+.. confval:: llms_txt_uri_template
+
+   - **Type**: string or ``None``
+   - **Default**: ``None``
+   - **Description**: Template string for generating URIs in ``llms.txt``.
+     See :ref:`customizing_uri_links`.
+
+   .. versionadded:: 0.7.0
+
 .. confval:: llms_txt_directives
 
    - **Type**: list of strings

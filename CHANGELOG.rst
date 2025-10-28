@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.0
+-----
+
+- Add :confval:`llms_txt_uri_template` configuration option to control the link behavior in :confval:`llms_txt_filename`.
+  `#48 <https://github.com/jdillard/sphinx-llms-txt/pull/48>`_
+
 0.6.0
 -----
 

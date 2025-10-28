@@ -223,6 +223,7 @@ class LLMSFullManager:
                     filtered_page_order,
                     self.collector.page_titles,
                     0,  # No line count since no llms-full.txt
+                    sources_dir,
                 )
 
             # Only warn if user explicitly wants llms-full.txt
@@ -523,6 +524,7 @@ class LLMSFullManager:
                         filtered_page_order,
                         self.collector.page_titles,
                         total_line_count,
+                        sources_dir,
                     )
                 return
             elif action == "note":
@@ -536,6 +538,7 @@ class LLMSFullManager:
                         filtered_page_order,
                         self.collector.page_titles,
                         total_line_count,
+                        sources_dir,
                     )
                 return
             elif action == "keep":
@@ -554,7 +557,10 @@ class LLMSFullManager:
         if success and self.config.get("llms_txt_file"):
             filtered_page_order = self._filter_ignored_pages(page_order)
             self.writer.write_verbose_info_to_file(
-                filtered_page_order, self.collector.page_titles, total_line_count
+                filtered_page_order,
+                self.collector.page_titles,
+                total_line_count,
+                sources_dir,
             )
 
     def _read_source_file(self, file_path: Path, docname: str) -> Tuple[str, int]:
