@@ -60,8 +60,8 @@ Project Configuration Values
 
 .. confval:: llms_txt_uri_template
 
-   - **Type**: string
-   - **Default**: ``"{base_url}_sources/{docname}{suffix}{sourcelink_suffix}"``
+   - **Type**: string or ``None``
+   - **Default**: ``None``
    - **Description**: Template string for generating URIs in ``llms.txt``.
      See :ref:`customizing_uri_links`.
 

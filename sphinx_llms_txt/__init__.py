@@ -116,11 +116,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
 
     app.add_config_value("llms_txt_file", True, "env")
     app.add_config_value("llms_txt_filename", "llms.txt", "env")
-    app.add_config_value(
-        "llms_txt_uri_template",
-        "{base_url}_sources/{docname}{suffix}{sourcelink_suffix}",
-        "env",
-    )
+    app.add_config_value("llms_txt_uri_template", None, "env")
     app.add_config_value("llms_txt_full_file", True, "env")
     app.add_config_value("llms_txt_full_filename", "llms-full.txt", "env")
     app.add_config_value("llms_txt_full_max_size", None, "env")
