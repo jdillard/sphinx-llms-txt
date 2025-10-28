@@ -18,7 +18,3 @@ add_custom_target(markdown
     COMMENT "Building Markdown documentation"
     VERBATIM
 )
-
-# Build both formats
-add_custom_target(docs ALL)
-add_dependencies(docs html markdown)
