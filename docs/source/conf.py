@@ -23,7 +23,8 @@ A Sphinx extension that generates a summary llms.txt file,written in Markdown,
 and a single combined documentation llms-full.txt file, written in reStructuredText.
 """
 
-rst_file_suffix = ".html.rst"
+# This doesn't seem to be supported
+# rst_file_suffix = ".html.rst"
 
 # check if the current commit is tagged as a release (vX.Y.Z)
 try:
