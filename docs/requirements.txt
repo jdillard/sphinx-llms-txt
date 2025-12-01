@@ -5,4 +5,4 @@ sphinx
 sphinx-llms-txt
 sphinxext-opengraph
 sphinx-markdown-builder
-sphinxcontrib-restbuilder
+sphinxcontrib-restbuilder @ git+https://github.com/jdillard/restbuilder.git@feature/singlerst-builder
