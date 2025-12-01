@@ -18,3 +18,10 @@ add_custom_target(markdown
     COMMENT "Building Markdown documentation"
     VERBATIM
 )
+
+# Build reStructuredText documentation
+add_custom_target(rst
+    COMMAND ${SPHINX_EXECUTABLE} -b rst ${SPHINX_SOURCE} ${SPHINX_BUILD}
+    COMMENT "Building reStructuredText documentation"
+    VERBATIM
+)
