@@ -22,10 +22,16 @@
       "targets": ["markdown"]
     },
     {
+      "name": "rst",
+      "displayName": "Build reStructuredText Documentation",
+      "configurePreset": "documentation",
+      "targets": ["rst"]
+    },
+    {
       "name": "docs-parallel",
       "displayName": "Build HTML and Markdown in parallel",
       "configurePreset": "documentation",
-      "targets": ["html", "markdown"]
+      "targets": ["html", "markdown", "rst"]
     }
   ],
   "workflowPresets": [
