@@ -4,17 +4,19 @@ Getting Started
 Installation
 ------------
 
-Directly install via ``pip`` by using:
+Directly install by using:
 
-.. code-block:: bash
+.. tab:: via pip
 
-    pip install sphinx-llms-txt
+   .. code-block:: bash
 
-Or with ``conda`` via ``conda-forge``:
+      pip install sphinx-llms-txt
 
-.. code::
+.. tab:: via conda:
 
-   conda install -c conda-forge sphinx-llms-txt
+   .. code-block:: bash
+
+      conda install -c conda-forge sphinx-llms-txt
 
 Usage
 -----
