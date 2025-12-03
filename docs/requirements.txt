@@ -3,6 +3,7 @@ esbonio
 sphinx-contributors
 sphinx
 sphinx-llms-txt
+sphinx-inline-tabs
 sphinxext-opengraph
 sphinx-markdown-builder
 sphinxcontrib-restbuilder
