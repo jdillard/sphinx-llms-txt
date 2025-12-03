@@ -293,8 +293,8 @@ Your URI template can use the following variables:
 - ``{sourcelink_suffix}`` - The suffix from ``html_sourcelink_suffix`` configuration (e.g., ``.txt``)
 
 .. tip::
-   Instead of using the default of linking to ``_sources``, you can generate Markdown files from your documentation and link to those in ``llms.txt``.
-   See this package's `CMake setup <https://github.com/jdillard/sphinx-llms-txt>`_ for an example of building both HTML and Markdown in parallel.
+   Instead of using the default of linking to ``_sources``, you can generate Markdown and/or reStructuredText files from your documentation and link to those in ``llms.txt``.
+   See this package's `CMake setup <https://github.com/jdillard/sphinx-llms-txt>`_ for an example of building both HTML and Markdown and/or reStructuredText in parallel.
    Note that ``_sources`` is still needed for ``llms-full.txt`` at this time.
 
 .. _integration_examples:

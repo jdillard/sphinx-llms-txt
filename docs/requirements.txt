@@ -5,3 +5,4 @@ sphinx
 sphinx-llms-txt
 sphinxext-opengraph
 sphinx-markdown-builder @ git+https://github.com/akaihola/sphinx-markdown-builder.git@singlemarkdown
+sphinxcontrib-restbuilder
