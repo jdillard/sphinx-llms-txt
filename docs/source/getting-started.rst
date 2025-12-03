@@ -34,8 +34,6 @@ After the HTML finishes building, **sphinx-llms-txt** will output the location o
     sphinx-llms-txt: Created /path/to/_build/html/llms-full.txt with 45 sources and 6879 lines
     sphinx-llms-txt: created /path/to/_build/html/llms.txt
 
-.. tip:: Make sure to confirm the accuracy of the output files after installs and upgrades.
-
 Choosing an Output Format
 -------------------------
 
@@ -66,12 +64,14 @@ For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxco
      - Raw directives (e.g., autodoc) won't be parsed
      - Loses structure from complex directives
      - Can lose structure from complex directives
+   * - **llms-full.txt support**
+     - Suported with above caveats
+     - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`_
+     - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`_
+
 
 See the project's `CMake setup <https://github.com/jdillard/sphinx-llms-txt/tree/main/cmake>`_ for an example of building HTML, Markdown, and RST in parallel.
 Use :confval:`llms_txt_uri_template` to configure links to point to your preferred format.
-
-See :doc:`advanced-configuration` for more information about how to use **sphinx-llms-txt**.
-
 
 .. _sphinx-markdown-builder: https://pypi.org/project/sphinx-markdown-builder/
 .. _sphinxcontrib-restbuilder: https://pypi.org/project/sphinxcontrib-restbuilder/
