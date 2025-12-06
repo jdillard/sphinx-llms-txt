@@ -38,7 +38,7 @@ Choosing an Output Format
 -------------------------
 
 By default, **sphinx-llms-txt** requires no additional configuration and links to raw reStructuredText source files in :confval:`_sources/ <sphinx:html_copy_source>`.
-For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxcontrib-restbuilder`_, set up in parallel builds using CMake .
+For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxcontrib-restbuilder`_, set up in parallel builds using :ref:`CMake <cmake_workflow>`.
 
 .. list-table:: Output Format Comparison
    :header-rows: 1
@@ -66,11 +66,11 @@ For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxco
      - Can lose structure from complex directives
    * - **llms-full.txt support**
      - Suported with above caveats
-     - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`_
-     - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`_
+     - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`__
+     - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`__
 
 
-See the project's `CMake setup <https://github.com/jdillard/sphinx-llms-txt/tree/main/cmake>`_ for an example of building HTML, Markdown, and RST in parallel.
+See :ref:`cmake_workflow` for an example of building HTML, Markdown, and RST in parallel.
 Use :confval:`llms_txt_uri_template` to configure links to point to your preferred format.
 
 .. _sphinx-markdown-builder: https://pypi.org/project/sphinx-markdown-builder/
