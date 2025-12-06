@@ -294,8 +294,65 @@ Your URI template can use the following variables:
 
 .. tip::
    Instead of using the default of linking to ``_sources``, you can generate Markdown and/or reStructuredText files from your documentation and link to those in ``llms.txt``.
-   See this package's `CMake setup <https://github.com/jdillard/sphinx-llms-txt>`_ for an example of building both HTML and Markdown and/or reStructuredText in parallel.
+   See :ref:`cmake_workflow` for an example of building both HTML and Markdown and/or reStructuredText in parallel.
    Note that ``_sources`` is still needed for ``llms-full.txt`` at this time.
+
+.. _cmake_workflow:
+
+CMake Workflow
+^^^^^^^^^^^^^^
+
+This project uses CMake to orchestrate documentation builds across multiple output formats, serving as a simple demo of the functionality.
+Building multiple formats allows you to compare what works best for your docs, as well as allows users to choose which format to feed to their LLM.
+This approach enables parallel builds and integrates well with CI/CD platforms like Read the Docs.
+
+Key Files
+~~~~~~~~~
+
+.. code-block:: text
+
+   .
+   ├── .readthedocs.yml
+   ├── CMakeLists.txt
+   ├── CMakePresets.json
+   ├── cmake/
+   │   └── SphinxUtils.cmake
+   └── docs/
+       └── CMakeLists.txt
+
+:ghfile:`.readthedocs.yml`
+   A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
+
+:ghfile:`CMakeLists.txt`
+   A CMake config file that sets up the project and includes the ``cmake/`` module path.
+
+:ghfile:`docs/CMakeLists.txt`
+   A CMake config file that includes the Sphinx utilities and defines the documentation-specific build targets.
+
+:ghfile:`cmake/SphinxUtils.cmake`
+   A CMake module that provides Sphinx related utilities.
+
+:ghfile:`CMakePresets.json`
+   Defines presets for configuring and building documentation:
+
+   - **Configure Presets:** Sets up the build directory.
+   - **Build Presets:** Defines Build formats individually and all in parallel.
+   - **Workflow Presets:** Runs the configure preset followed by the parallel build preset.
+
+Usage
+~~~~~
+
+To build documentation locally using CMake:
+
+.. code-block:: console
+
+   # Run the full workflow (configure + build all formats)
+   cmake --workflow --preset documentation-workflow
+
+   # Or configure and build separately
+   cmake --preset documentation
+   cmake --build --preset html        # Build HTML only
+   cmake --build --preset docs-parallel  # Build all formats
 
 .. _integration_examples:
 
