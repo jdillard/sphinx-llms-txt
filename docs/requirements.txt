@@ -5,5 +5,5 @@ sphinx
 sphinx-llms-txt
 sphinx-inline-tabs
 sphinxext-opengraph
-sphinx-markdown-builder
+sphinx-markdown-builder @ git+https://github.com/akaihola/sphinx-markdown-builder.git@singlemarkdown
 sphinxcontrib-restbuilder
