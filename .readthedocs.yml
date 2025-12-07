@@ -13,4 +13,5 @@ build:
     - mkdir -p $READTHEDOCS_OUTPUT/html
     - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
     - cp -r build/markdown/* $READTHEDOCS_OUTPUT/html/
+    - cp build/singlemarkdown/index.md $READTHEDOCS_OUTPUT/html/llms-full.txt
     - cp -r build/rst/* $READTHEDOCS_OUTPUT/html/

@@ -22,6 +22,12 @@
       "targets": ["markdown"]
     },
     {
+      "name": "singlemarkdown",
+      "displayName": "Build Single Markdown Documentation",
+      "configurePreset": "documentation",
+      "targets": ["singlemarkdown"]
+    },
+    {
       "name": "rst",
       "displayName": "Build reStructuredText Documentation",
       "configurePreset": "documentation",
@@ -31,7 +37,7 @@
       "name": "docs-parallel",
       "displayName": "Build HTML and Markdown in parallel",
       "configurePreset": "documentation",
-      "targets": ["html", "markdown", "rst"]
+      "targets": ["html", "markdown", "singlemarkdown", "rst"]
     }
   ],
   "workflowPresets": [
