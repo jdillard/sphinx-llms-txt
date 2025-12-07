@@ -13,16 +13,16 @@ You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a si
 Highlights
 ----------
 
-1. **Content Collection**: Quickly gathers content from _sources, without needing a separate build
-2. **Directive Processing**: Resolves ``include`` directives by automatically incorporating their content
-3. **Path Resolution**: Transforms relative paths in directives to full paths
-4. **Output Generation**: Creates two optional files:
+**Zero Configuration**
+   Add the extension to your ``conf.py`` and you're done.
+   The extension automatically collects your documentation and generates both ``llms.txt`` and ``llms-full.txt`` during your normal Sphinx build.
 
-   - ``llms.txt``: A concise summary of your documentation, in Markdown
-   - ``llms-full.txt``: A comprehensive version with all documentation content, in reStructuredText
+**Intelligent Content Processing**
+   Automatically resolves ``include`` directives, transforms relative paths, and handles your documentation structure without manual intervention.
 
-5. **Content Filtering**: Allows you to exclude specific pages or sections
-6. **Source Code**: Allows you to include specific source code files
+**Customizable When Needed**
+   Filter content, include source code files, or integrate with alternative output formats like Markdown for even better LLM compatibility.
+   See :doc:`getting-started` for output format options and :doc:`configuration-values` for all settings.
 
 .. toctree::
    :maxdepth: 2
