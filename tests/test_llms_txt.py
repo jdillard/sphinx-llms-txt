@@ -199,12 +199,12 @@ def test_process_includes(tmp_path):
 
 
 def test_process_includes_in_code_block(tmp_path):
-    """Test that an include directive within a code block is not processed."""
+    """Test that an `include` within a `code-block` is not processed."""
     # Create a processor
     config = {"llms_txt_directives": []}
     processor = DocumentProcessor(config)
 
-    # Create a source file that includes the test file
+    # Create a source file that uses include syntax within a `code-block`
     source_content = (
         "Normal paragraph.\n\n"
         ".. code-block:: rst\n\n"
@@ -215,10 +215,10 @@ def test_process_includes_in_code_block(tmp_path):
     with open(source_file, "w", encoding="utf-8") as f:
         f.write(source_content)
 
-    # Process the include directive
+    # Run the include directive processor
     processed_content = processor._process_includes(source_content, source_file)
 
-    # Check that the include directive was replaced with the content
+    # Check that the include directive was not processed
     expected_content = source_content
     assert processed_content == expected_content
 
