@@ -206,7 +206,10 @@ def test_process_includes_in_code_block(tmp_path):
 
     # Create a source file that includes the test file
     source_content = (
-        ".. code-block:: rst\n\n   .. include:: foo.txt"
+        "Normal paragraph.\n\n"
+        ".. code-block:: rst\n\n"
+        "   .. include:: foo.txt\n\n"
+        "Another normal paragraph."
     )
     source_file = tmp_path / "source.txt"
     with open(source_file, "w", encoding="utf-8") as f:

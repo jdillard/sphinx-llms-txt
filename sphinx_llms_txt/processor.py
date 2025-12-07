@@ -276,6 +276,55 @@ class DocumentProcessor:
 
         return possible_paths
 
+    def _get_code_block_ranges(self, content: str) -> List[Tuple[int, int]]:
+        """Find all `code-block` ranges in the content.
+
+        Args:
+            content: The source content to analyze
+
+        Returns:
+            List of (start, end) tuples representing `code-block` character
+            ranges
+        """
+        code_block_ranges = []
+
+        # Match `code-block` as well as `code` and `sourcecode` aliases
+        code_block_pattern = re.compile(
+            r'^(\s*)\.\.\s+(code-block|code|sourcecode)::\s*\S*\s*$',
+            re.MULTILINE
+        )
+
+        for match in code_block_pattern.finditer(content):
+            start_pos = match.start()
+            indent = match.group(1)
+            indent_len = len(indent)
+
+            # Find the end of the `code-block` by looking for the next line
+            # that is not indented more than the directive
+            block_start = match.end()
+            pos = block_start
+
+            # Skip any blank lines immediately after the directive
+            while pos < len(content) and content[pos] in '\n':
+                pos += 1
+
+            # Find where the code block ends
+            lines = content[pos:].split('\n')
+            block_end = pos
+            for line in lines:
+                if line.strip():  # Non-empty line
+                    # Check indentation level
+                    line_indent = len(line) - len(line.lstrip())
+                    if line_indent <= indent_len:
+                        # The block ends when we find a line that is indented
+                        # less than the directive itself
+                        break
+                block_end += len(line) + 1  # +1 for the newline
+
+            code_block_ranges.append((start_pos, block_end))
+
+        return code_block_ranges
+
     def _process_includes(self, content: str, source_path: Path) -> str:
         """Process include directives in content.
 
@@ -286,11 +335,20 @@ class DocumentProcessor:
         Returns:
             Processed content with include directives replaced with included content
         """
+        code_block_ranges = self._get_code_block_ranges(content)
+
         # Find all include directives using regex
         include_pattern = build_directive_pattern(["include"])
 
         # Function to replace each include with content
         def replace_include(match):
+            # Check if this include is within a code block
+            match_start = match.start()
+            for block_start, block_end in code_block_ranges:
+                if block_start <= match_start < block_end:
+                    # This include is inside a code block, don't process it
+                    return match.group(0)
+
             include_path = match.group(3)
             directive_part = match.group(
                 1
