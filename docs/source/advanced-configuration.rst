@@ -303,8 +303,10 @@ CMake Workflow
 ^^^^^^^^^^^^^^
 
 This project uses CMake to orchestrate documentation builds across multiple output formats, serving as a simple demo of the functionality.
-Building multiple formats allows you to compare what works best for your docs, as well as allows users to choose which format to feed to their LLM.
 This approach enables parallel builds and integrates well with CI/CD platforms like Read the Docs.
+
+Building multiple formats allows you to compare what works best for your docs, as well as allows users to choose which format to feed to their LLM.
+Use :confval:`llms_txt_uri_template` to configure links to point to your preferred format.
 
 Key Files
 ~~~~~~~~~
