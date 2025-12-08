@@ -38,7 +38,7 @@ Choosing an Output Format
 -------------------------
 
 By default, **sphinx-llms-txt** requires no additional configuration and links to raw reStructuredText source files in :confval:`_sources/ <sphinx:html_copy_source>`.
-For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxcontrib-restbuilder`_, set up in parallel builds using :ref:`CMake <cmake_workflow>`.
+For optimal LLM support, you can use alternative builders set up in parallel builds using :ref:`CMake <cmake_workflow>`.
 
 .. list-table:: Output Format Comparison
    :header-rows: 1
@@ -48,10 +48,14 @@ For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxco
      - Default (no config)
      - Markdown (CMake)
      - RST (CMake)
+   * - **Builder**
+     - Native [#native]_
+     - `sphinx-markdown-builder`_
+     - `sphinxcontrib-restbuilder`_
    * - **Format**
      - Raw RST source
-     - Rendered Markdown
-     - Rendered RST
+     - Rendered Markdown [#rendered]_
+     - Rendered RST [#rendered]_
    * - **LLM Readability**
      - Good - preserves structure for simple syntax
      - Excellent - native LLM format
@@ -61,13 +65,13 @@ For optimal LLM support, you can use `sphinx-markdown-builder`_ and/or `sphinxco
      - More compact (less input tokens)
      - Can preserve Sphinx semantics
    * - **Key Disadvantage**
-     - Raw directives (e.g., autodoc) won't be parsed
+     - Raw directives (e.g., ``autodoc``) won't be parsed [#autodoc]_
      - Loses structure from complex directives
      - Can lose structure from complex directives
    * - **llms-full.txt support**
-     - Suported with above caveats
-     - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`__
-     - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`__
+     - Supported with above caveats
+     - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`__ [#pending]_
+     - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`__ [#pending]_
 
 
 See :ref:`cmake_workflow` for an example of building HTML, Markdown, and RST in parallel.
@@ -75,4 +79,11 @@ Use :confval:`llms_txt_uri_template` to configure links to point to your preferr
 
 .. _sphinx-markdown-builder: https://pypi.org/project/sphinx-markdown-builder/
 .. _sphinxcontrib-restbuilder: https://pypi.org/project/sphinxcontrib-restbuilder/
+
+.. rubric:: Footnotes
+
+.. [#native] Uses raw source files created by Sphinx's HTML builder with some minor enhancements.
+.. [#autodoc] Directives like ``autodoc`` will appear as raw directive syntax rather than the extracted docstrings.
+.. [#pending] PRs that add ``llms-full.txt`` concatenation support have yet to be released.
+.. [#rendered] Directives are expanded and processed before output, so content like autodoc docstrings will be included.
 
