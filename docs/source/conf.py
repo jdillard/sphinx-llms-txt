@@ -16,7 +16,7 @@ project = "sphinx-llms-txt"
 copyright = "Jared Dillard"
 author = "Jared Dillard"
 
-llms_txt_uri_template = "{base_url}{docname}.md"
+llms_txt_uri_template = "{base_url}{docname}.html.md"
 llms_txt_code_files = ["+:../../sphinx_llms_txt/*.py"]
 llms_txt_summary = """
 A Sphinx extension that generates a summary llms.txt file,written in Markdown,
@@ -25,6 +25,7 @@ and a single combined documentation llms-full.txt file, written in reStructuredT
 
 # This doesn't seem to be supported
 # rst_file_suffix = ".html.rst"
+markdown_file_suffix = ".html.md"
 
 extlinks = {
     "ghfile": ("https://github.com/jdillard/sphinx-llms-txt/blob/main/%s", "%s")
