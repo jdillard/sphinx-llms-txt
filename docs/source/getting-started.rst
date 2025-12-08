@@ -47,9 +47,13 @@ For optimal LLM support, see the alternative builders below and the :ref:`CMake 
    :widths: 18 27 27 27
 
    * -
-     - Default (no config)
-     - Markdown (CMake)
-     - reStructuredText (CMake)
+     - Default
+     - Markdown
+     - reStructuredText
+   * - **Setup**
+     - No config
+     - CMake
+     - CMake
    * - **Builder**
      - Native [#native]_
      - `sphinx-markdown-builder`_
