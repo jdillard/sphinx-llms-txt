@@ -9,6 +9,8 @@ build:
     - pip install -r docs/requirements.txt
     - pip install -e .
     - cmake --workflow --preset documentation-workflow
+    # Generate llms.txt variants for demo purposes
+    - python docs/generate_llms_variants.py build/html
     # Copy built documentation to Read the Docs output directory
     - mkdir -p $READTHEDOCS_OUTPUT/html
     - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
