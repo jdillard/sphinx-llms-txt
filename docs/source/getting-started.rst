@@ -38,7 +38,7 @@ Choosing an Output Format
 -------------------------
 
 By default, **sphinx-llms-txt** requires no additional configuration and links to raw reStructuredText source files created by the HTML builder.
-For optimal LLM support, you can use alternative builders set up in parallel builds using :ref:`CMake <cmake_workflow>`.
+For optimal LLM support, see the alternative builders below and the :ref:`CMake workflow <cmake_workflow>` for setup.
 
 .. list-table:: Output Format Comparison
    :header-rows: 1
@@ -72,9 +72,6 @@ For optimal LLM support, you can use alternative builders set up in parallel bui
      - Supported with above caveats
      - Pending `support <https://github.com/liran-funaro/sphinx-markdown-builder/pull/37>`__ [#pending]_
      - Pending `support <https://github.com/sphinx-contrib/restbuilder/pull/35>`__ [#pending]_
-
-
-See :ref:`cmake_workflow` for an example of building HTML, Markdown, and RST in parallel.
 
 .. _sphinx-markdown-builder: https://pypi.org/project/sphinx-markdown-builder/
 .. _sphinxcontrib-restbuilder: https://pypi.org/project/sphinxcontrib-restbuilder/
