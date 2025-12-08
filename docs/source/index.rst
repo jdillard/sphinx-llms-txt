@@ -8,7 +8,9 @@ A `Sphinx`_ extension that generates a summary ``llms.txt`` file, written in Mar
 Demo
 ----
 
-You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as a simple example.
+You can see this Sphinx project's `llms.txt`_ and `llms-full.txt`_ files as an example of the default :ref:`output formats <choosing-output-format>`.
+
+Alternative :ref:`output formats <choosing-output-format>` are also available: `llms.md.txt`_ (Markdown) and `llms.rst.txt`_ (reStructuredText).
 
 Highlights
 ----------
@@ -36,6 +38,8 @@ Highlights
 
 .. _llms.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.txt
 .. _llms-full.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms-full.txt
+.. _llms.md.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.md.txt
+.. _llms.rst.txt: https://sphinx-llms-txt.readthedocs.io/en/latest/llms.rst.txt
 .. _Sphinx: http://sphinx-doc.org/
 
 .. |PyPI version| image:: https://img.shields.io/pypi/v/sphinx-llms-txt.svg

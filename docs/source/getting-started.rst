@@ -34,6 +34,8 @@ After the HTML finishes building, **sphinx-llms-txt** will output the location o
     sphinx-llms-txt: Created /path/to/_build/html/llms-full.txt with 45 sources and 6879 lines
     sphinx-llms-txt: created /path/to/_build/html/llms.txt
 
+.. _choosing-output-format:
+
 Choosing an Output Format
 -------------------------
 
@@ -47,15 +49,15 @@ For optimal LLM support, see the alternative builders below and the :ref:`CMake 
    * -
      - Default (no config)
      - Markdown (CMake)
-     - RST (CMake)
+     - reStructuredText (CMake)
    * - **Builder**
      - Native [#native]_
      - `sphinx-markdown-builder`_
      - `sphinxcontrib-restbuilder`_
    * - **Format**
-     - Raw RST source
+     - Raw reStructuredText source
      - Rendered Markdown [#rendered]_
-     - Rendered RST [#rendered]_
+     - Rendered reStructuredText [#rendered]_
    * - **LLM Readability**
      - Good - preserves structure for simple syntax
      - Excellent - native LLM format
