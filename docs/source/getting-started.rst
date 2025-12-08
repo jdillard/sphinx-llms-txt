@@ -75,7 +75,6 @@ For optimal LLM support, you can use alternative builders set up in parallel bui
 
 
 See :ref:`cmake_workflow` for an example of building HTML, Markdown, and RST in parallel.
-Use :confval:`llms_txt_uri_template` to configure links to point to your preferred format.
 
 .. _sphinx-markdown-builder: https://pypi.org/project/sphinx-markdown-builder/
 .. _sphinxcontrib-restbuilder: https://pypi.org/project/sphinxcontrib-restbuilder/
