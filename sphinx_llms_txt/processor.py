@@ -128,8 +128,11 @@ class DocumentProcessor:
         Returns:
             Processed content with directive paths properly resolved
         """
+        # Get code block ranges to skip directives inside them
+        code_block_ranges = self._get_code_block_ranges(content)
+
         # Get the configured path directives to process
-        default_path_directives = ["image", "figure"]
+        default_path_directives = ["image", "figure", "literalinclude"]
         custom_path_directives = self.config.get("llms_txt_directives")
         path_directives = set(default_path_directives + custom_path_directives)
 
@@ -143,6 +146,11 @@ class DocumentProcessor:
         is_test = "pytest" in str(source_path) and "subdir" in str(source_path)
 
         def replace_directive_path(match, base_url=base_url, is_test=is_test):
+            # Check if this directive is within a code block
+            if self._is_in_code_block(match.start(), code_block_ranges):
+                # This directive is inside a code block, don't process it
+                return match.group(0)
+
             prefix = match.group(1)  # The entire directive prefix including whitespace
             path = match.group(3).strip()  # The path argument
 
@@ -277,18 +285,18 @@ class DocumentProcessor:
         return possible_paths
 
     def _get_code_block_ranges(self, content: str) -> List[Tuple[int, int]]:
-        """Find all `code-block` ranges in the content.
+        """Find all code block ranges in the content.
 
         Args:
             content: The source content to analyze
 
         Returns:
-            List of (start, end) tuples representing `code-block` character
+            List of (start, end) tuples representing code block character
             ranges
         """
         code_block_ranges = []
 
-        # Match `code-block` as well as `code` and `sourcecode` aliases
+        # Match code block as well as `code` and `sourcecode` aliases
         code_block_pattern = re.compile(
             r'^(\s*)\.\.\s+(code-block|code|sourcecode)::\s*\S*\s*$',
             re.MULTILINE
@@ -299,7 +307,7 @@ class DocumentProcessor:
             indent = match.group(1)
             indent_len = len(indent)
 
-            # Find the end of the `code-block` by looking for the next line
+            # Find the end of the code block by looking for the next line
             # that is not indented more than the directive
             block_start = match.end()
             pos = block_start
@@ -325,6 +333,23 @@ class DocumentProcessor:
 
         return code_block_ranges
 
+    def _is_in_code_block(
+        self, match_start: int, code_block_ranges: List[Tuple[int, int]]
+    ) -> bool:
+        """Check if a match position is within a code block.
+
+        Args:
+            match_start: The starting position of the match
+            code_block_ranges: List of (start, end) tuples for code blocks
+
+        Returns:
+            True if the match is within a code block, False otherwise
+        """
+        for block_start, block_end in code_block_ranges:
+            if block_start <= match_start < block_end:
+                return True
+        return False
+
     def _process_includes(self, content: str, source_path: Path) -> str:
         """Process include directives in content.
 
@@ -343,11 +368,9 @@ class DocumentProcessor:
         # Function to replace each include with content
         def replace_include(match):
             # Check if this include is within a code block
-            match_start = match.start()
-            for block_start, block_end in code_block_ranges:
-                if block_start <= match_start < block_end:
-                    # This include is inside a code block, don't process it
-                    return match.group(0)
+            if self._is_in_code_block(match.start(), code_block_ranges):
+                # This include is inside a code block, don't process it
+                return match.group(0)
 
             include_path = match.group(3)
             directive_part = match.group(
