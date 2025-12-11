@@ -26,10 +26,6 @@ and a single combined documentation llms-full.txt file, written in reStructuredT
 # rst_file_suffix = ".html.rst"
 markdown_file_suffix = ".html.md"
 
-extlinks = {
-    "ghfile": ("https://github.com/jdillard/sphinx-llms-txt/blob/main/%s", "%s")
-}
-
 # check if the current commit is tagged as a release (vX.Y.Z)
 try:
     GIT_TAG_OUTPUT = subprocess.check_output(["git", "tag", "--points-at", "HEAD"])
