@@ -29,7 +29,7 @@
     },
     {
       "name": "docs-parallel",
-      "displayName": "Build HTML and Markdown in parallel",
+      "displayName": "Build all output formats in parallel",
       "configurePreset": "documentation",
       "targets": ["html", "markdown", "rst"]
     }

@@ -311,35 +311,112 @@ Use :confval:`llms_txt_uri_template` to configure links to point to your preferr
 Key Files
 ~~~~~~~~~
 
+These configuration files serve as a simple example of a Sphinx site hosted on Read The Docs, some modification may be needed.
+
 .. code-block:: text
 
    .
    ├── .readthedocs.yml
    ├── CMakeLists.txt
    ├── CMakePresets.json
-   ├── cmake/
-   │   └── SphinxUtils.cmake
    └── docs/
        └── CMakeLists.txt
 
-:ghfile:`.readthedocs.yml`
+Each section below contains a summary of the file's purpose, the full contents of the file, and a table describing key lines that may need modification.
+
+.. dropdown:: .readthedocs.yml
+   :chevron: down-up
+
    A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
 
-:ghfile:`CMakeLists.txt`
-   A CMake config file that sets up the project and includes the ``cmake/`` module path.
+   .. literalinclude:: ../../.readthedocs.yml
+      :language: yaml
+      :lines: 1-9,11,14-
+      :linenos:
+      :emphasize-lines: 9, 14-15
 
-:ghfile:`docs/CMakeLists.txt`
-   A CMake config file that includes the Sphinx utilities and defines the documentation-specific build targets.
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
 
-:ghfile:`cmake/SphinxUtils.cmake`
-   A CMake module that provides Sphinx related utilities.
+      * - Line
+        - Description
+      * - **9**
+        - Update the path if your requirements file is in a different location
+      * - **13-14**
+        - Modify the copy commands for the output formats you deploy
 
-:ghfile:`CMakePresets.json`
+.. dropdown:: CMakeLists.txt
+   :chevron: down-up
+
+   A CMake config file that sets up the project, fetches the shared `sphinx-cmake-modules <https://github.com/jdillard/sphinx-cmake-modules>`_, and includes the docs subdirectory.
+
+   .. literalinclude:: ../../CMakeLists.txt
+      :language: cmake
+      :linenos:
+      :emphasize-lines: 9, 15
+
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **9**
+        - Update the ``GIT_TAG`` to use a different version or commit hash
+      * - **15**
+        - Change if your docs subdirectory has a different location
+
+.. dropdown:: docs/CMakeLists.txt
+   :chevron: down-up
+
+   A CMake config file that includes the `SphinxUtils <https://github.com/jdillard/sphinx-cmake-modules/blob/v0.1.0/SphinxUtils.cmake>`_ module from FetchContent and defines the documentation-specific build targets.
+
+   .. literalinclude:: ../CMakeLists.txt
+      :language: cmake
+      :linenos:
+      :emphasize-lines: 5-7
+
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **5-7**
+        - Add or remove calls based on which output formats you need
+
+
+.. dropdown:: CMakePresets.json
+   :chevron: down-up
+
    Defines presets for configuring and building documentation:
 
    - **Configure Presets:** Sets up the build directory.
-   - **Build Presets:** Defines Build formats individually and all in parallel.
+   - **Build Presets:** Defines build formats individually and all in parallel.
    - **Workflow Presets:** Runs the configure preset followed by the parallel build preset.
+
+   .. literalinclude:: ../../CMakePresets.json
+      :language: json
+      :linenos:
+      :emphasize-lines: 18-23, 24-29, 34
+
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **18-23**
+        - Remove this preset to disable Markdown documentation builds
+      * - **24-29**
+        - Remove this preset to disable reStructuredText documentation builds
+      * - **34**
+        - Modify the targets list to build only the output formats you need in parallel
 
 Usage
 ~~~~~
