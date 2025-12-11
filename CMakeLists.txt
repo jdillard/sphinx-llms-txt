@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(SphinxLLMsTxt VERSION 1.0.0 LANGUAGES NONE)
+project(SphinxDocs VERSION 1.0.0 LANGUAGES NONE)
 
 # Fetch Sphinx CMake modules
 include(FetchContent)
