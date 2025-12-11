@@ -9,7 +9,7 @@ FetchContent_Declare(
   GIT_TAG        main
 )
 FetchContent_MakeAvailable(sphinx_cmake_modules)
-list(APPEND CMAKE_MODULE_PATH "${sphinx_cmake_modules_SOURCE_DIR}")
+list(APPEND CMAKE_MODULE_PATH "${sphinx_cmake_modules_SOURCE_DIR}/cmake")
 
 # Add documentation
 add_subdirectory(docs)
