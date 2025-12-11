@@ -311,6 +311,8 @@ Use :confval:`llms_txt_uri_template` to configure links to point to your preferr
 Key Files
 ~~~~~~~~~
 
+These configuration files serve as a simple example of a Sphinx site hosted on Read The Docs, some modification may be needed.
+
 .. code-block:: text
 
    .
@@ -320,30 +322,18 @@ Key Files
    └── docs/
        └── CMakeLists.txt
 
+Each section below contains a summary of the file's purpose, the full contents of the file, and a table describing key lines that may need modification.
+
 .. dropdown:: .readthedocs.yml
    :chevron: down-up
-   :open:
 
    A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
 
-   .. code-block:: yaml
+   .. literalinclude:: ../../.readthedocs.yml
+      :language: yaml
+      :lines: 1-9,11,14-
       :linenos:
-      :emphasize-lines: 9, 13-14
-
-      version: 2
-
-      build:
-      os: ubuntu-24.04
-      tools:
-         python: "3.13"
-      commands:
-         - pip install cmake
-         - pip install -r docs/requirements.txt
-         - cmake --workflow --preset documentation-workflow
-         # Copy built documentation to Read the Docs output directory
-         - mkdir -p $READTHEDOCS_OUTPUT/html
-         - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
-         - cp -r build/markdown/* $READTHEDOCS_OUTPUT/html/
+      :emphasize-lines: 9, 14-15
 
    .. list-table::
       :header-rows: 1
@@ -362,25 +352,10 @@ Key Files
 
    A CMake config file that sets up the project, fetches the shared `sphinx-cmake-modules <https://github.com/jdillard/sphinx-cmake-modules>`_, and includes the docs subdirectory.
 
-   .. code-block:: cmake
+   .. literalinclude:: ../../CMakeLists.txt
+      :language: cmake
       :linenos:
       :emphasize-lines: 9, 15
-
-      cmake_minimum_required(VERSION 3.15)
-      project(SphinxDocs VERSION 1.0.0 LANGUAGES NONE)
-
-      # Fetch Sphinx CMake modules
-      include(FetchContent)
-      FetchContent_Declare(
-      sphinx_cmake_modules
-      GIT_REPOSITORY https://github.com/jdillard/sphinx-cmake-modules.git
-      GIT_TAG        v0.1.0
-      )
-      FetchContent_MakeAvailable(sphinx_cmake_modules)
-      list(APPEND CMAKE_MODULE_PATH "${sphinx_cmake_modules_SOURCE_DIR}")
-
-      # Add documentation
-      add_subdirectory(docs)
 
    .. list-table::
       :header-rows: 1
@@ -394,22 +369,15 @@ Key Files
       * - **15**
         - Change if your docs subdirectory has a different location
 
-.. dropdown:: CMakeLists.txt
+.. dropdown:: docs/CMakeLists.txt
    :chevron: down-up
 
    A CMake config file that includes the `SphinxUtils <https://github.com/jdillard/sphinx-cmake-modules/blob/v0.1.0/SphinxUtils.cmake>`_ module from FetchContent and defines the documentation-specific build targets.
 
-   .. code-block:: cmake
+   .. literalinclude:: ../CMakeLists.txt
+      :language: cmake
       :linenos:
-      :emphasize-lines: 6-7
-
-      include(SphinxUtils)
-
-      setup_sphinx_environment()
-
-      add_sphinx_builder(html)
-      add_sphinx_builder(markdown)
-      add_sphinx_builder(rst)
+      :emphasize-lines: 5-7
 
    .. list-table::
       :header-rows: 1
@@ -418,7 +386,7 @@ Key Files
 
       * - Line
         - Description
-      * - **6-7**
+      * - **5-7**
         - Add or remove calls based on which output formats you need
 
 
@@ -431,63 +399,10 @@ Key Files
    - **Build Presets:** Defines build formats individually and all in parallel.
    - **Workflow Presets:** Runs the configure preset followed by the parallel build preset.
 
-   .. code-block:: json
+   .. literalinclude:: ../../CMakePresets.json
+      :language: json
       :linenos:
       :emphasize-lines: 18-23, 24-29, 34
-
-      {
-      "version": 6,
-      "configurePresets": [
-         {
-            "name": "documentation",
-            "displayName": "Documentation Build",
-            "description": "Configure project with documentation environment setup",
-            "binaryDir": "${sourceDir}/build"
-         }
-      ],
-      "buildPresets": [
-         {
-            "name": "html",
-            "displayName": "Build HTML Documentation",
-            "configurePreset": "documentation",
-            "targets": ["html"]
-         },
-         {
-            "name": "markdown",
-            "displayName": "Build Markdown Documentation",
-            "configurePreset": "documentation",
-            "targets": ["markdown"]
-         },
-         {
-            "name": "rst",
-            "displayName": "Build reStructuredText Documentation",
-            "configurePreset": "documentation",
-            "targets": ["rst"]
-         },
-         {
-            "name": "docs-parallel",
-            "displayName": "Build all output formats in parallel",
-            "configurePreset": "documentation",
-            "targets": ["html", "markdown", "rst"]
-         }
-      ],
-      "workflowPresets": [
-         {
-            "name": "documentation-workflow",
-            "displayName": "Documentation Build Workflow",
-            "steps": [
-            {
-               "type": "configure",
-               "name": "documentation"
-            },
-            {
-               "type": "build",
-               "name": "docs-parallel"
-            }
-            ]
-         }
-      ]
-      }
 
    .. list-table::
       :header-rows: 1
