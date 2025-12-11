@@ -84,7 +84,7 @@ For optimal LLM support, see the alternative builders below and the :ref:`CMake 
 
 .. rubric:: Footnotes
 
-.. [#sphinxllm] See `sphinx-llm <https://github.com/jacobtomlinson/sphinx-llm>`_ for CMake-free Markdown builds, note it may double build times due to serial execution.
+.. [#sphinxllm] See `sphinx-llm <https://github.com/jacobtomlinson/sphinx-llm>`_ as an alternative for CMake-free Markdown builds.
 .. [#native] Uses raw :confval:`_sources/ <sphinx:html_copy_source>` files created by Sphinx's HTML builder with some minor enhancements.
 .. [#autodoc] Directives like ``autodoc`` will appear as raw directive syntax rather than the extracted docstrings.
 .. [#pending] PRs that add ``llms-full.txt`` concatenation support have yet to be released.
