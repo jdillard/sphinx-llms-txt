@@ -326,14 +326,6 @@ Key Files
 
    A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
 
-   .. list-table::
-      :header-rows: 1
-
-      * - **Example**
-        - Fast execution time
-      * - **Lines**
-        - Fast execution time
-
    .. code-block:: yaml
       :linenos:
       :emphasize-lines: 9, 13-14
@@ -353,7 +345,17 @@ Key Files
          - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
          - cp -r build/markdown/* $READTHEDOCS_OUTPUT/html/
 
-   This repo's version of :ghfile:`.readthedocs.yml`.
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **9**
+        - Update the path if your requirements file is in a different location
+      * - **13-14**
+        - Modify the copy commands for the output formats you deploy
 
 .. dropdown:: CMakeLists.txt
    :chevron: down-up
@@ -380,7 +382,17 @@ Key Files
       # Add documentation
       add_subdirectory(docs)
 
-   This repo's version of :ghfile:`CMakeLists.txt`.
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **9**
+        - Update the ``GIT_TAG`` to use a different version or commit hash
+      * - **15**
+        - Change if your docs subdirectory has a different location
 
 .. dropdown:: CMakeLists.txt
    :chevron: down-up
@@ -399,7 +411,16 @@ Key Files
       add_sphinx_builder(markdown)
       add_sphinx_builder(rst)
 
-   This repo's version of :ghfile:`docs/CMakeLists.txt`.
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **6-7**
+        - Add or remove calls based on which output formats you need
+
 
 .. dropdown:: CMakePresets.json
    :chevron: down-up
@@ -468,7 +489,19 @@ Key Files
       ]
       }
 
-   This repo's version of :ghfile:`CMakePresets.json`.
+   .. list-table::
+      :header-rows: 1
+      :width: 100%
+      :widths: 15 85
+
+      * - Line
+        - Description
+      * - **18-23**
+        - Remove this preset to disable Markdown documentation builds
+      * - **24-29**
+        - Remove this preset to disable reStructuredText documentation builds
+      * - **34**
+        - Modify the targets list to build only the output formats you need in parallel
 
 Usage
 ~~~~~
