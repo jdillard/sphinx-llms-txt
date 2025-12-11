@@ -322,19 +322,24 @@ Key Files
    └── docs/
        └── CMakeLists.txt
 
-:ghfile:`.readthedocs.yml`
+.. dropdown:: :ghfile:`.readthedocs.yml`
+
    A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
 
-:ghfile:`CMakeLists.txt`
+.. dropdown:: :ghfile:`CMakeLists.txt`
+
    A CMake config file that sets up the project and includes the ``cmake/`` module path.
 
-:ghfile:`docs/CMakeLists.txt`
+.. dropdown:: :ghfile:`docs/CMakeLists.txt`
+
    A CMake config file that includes the Sphinx utilities and defines the documentation-specific build targets.
 
-:ghfile:`cmake/SphinxUtils.cmake`
+.. dropdown:: :ghfile:`cmake/SphinxUtils.cmake`
+
    A CMake module that provides Sphinx related utilities.
 
-:ghfile:`CMakePresets.json`
+.. dropdown:: :ghfile:`CMakePresets.json`
+
    Defines presets for configuring and building documentation:
 
    - **Configure Presets:** Sets up the build directory.
