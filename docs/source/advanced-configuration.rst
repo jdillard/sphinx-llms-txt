@@ -317,34 +317,158 @@ Key Files
    ├── .readthedocs.yml
    ├── CMakeLists.txt
    ├── CMakePresets.json
-   ├── cmake/
-   │   └── SphinxUtils.cmake
    └── docs/
        └── CMakeLists.txt
 
-.. dropdown:: :ghfile:`.readthedocs.yml`
+.. dropdown:: .readthedocs.yml
+   :chevron: down-up
+   :open:
 
    A Read The Docs config file that installs dependencies, then runs the full documentation workflow which builds all output formats in parallel, and copies them into a single deploy location.
 
-.. dropdown:: :ghfile:`CMakeLists.txt`
+   .. list-table::
+      :header-rows: 1
 
-   A CMake config file that sets up the project and includes the ``cmake/`` module path.
+      * - **Example**
+        - Fast execution time
+      * - **Lines**
+        - Fast execution time
 
-.. dropdown:: :ghfile:`docs/CMakeLists.txt`
+   .. code-block:: yaml
+      :linenos:
+      :emphasize-lines: 9, 13-14
 
-   A CMake config file that includes the Sphinx utilities and defines the documentation-specific build targets.
+      version: 2
 
-.. dropdown:: :ghfile:`cmake/SphinxUtils.cmake`
+      build:
+      os: ubuntu-24.04
+      tools:
+         python: "3.13"
+      commands:
+         - pip install cmake
+         - pip install -r docs/requirements.txt
+         - cmake --workflow --preset documentation-workflow
+         # Copy built documentation to Read the Docs output directory
+         - mkdir -p $READTHEDOCS_OUTPUT/html
+         - cp -r build/html/* $READTHEDOCS_OUTPUT/html/
+         - cp -r build/markdown/* $READTHEDOCS_OUTPUT/html/
 
-   A CMake module that provides Sphinx related utilities.
+   This repo's version of :ghfile:`.readthedocs.yml`.
 
-.. dropdown:: :ghfile:`CMakePresets.json`
+.. dropdown:: CMakeLists.txt
+   :chevron: down-up
+
+   A CMake config file that sets up the project, fetches the shared `sphinx-cmake-modules <https://github.com/jdillard/sphinx-cmake-modules>`_, and includes the docs subdirectory.
+
+   .. code-block:: cmake
+      :linenos:
+      :emphasize-lines: 9, 15
+
+      cmake_minimum_required(VERSION 3.15)
+      project(SphinxDocs VERSION 1.0.0 LANGUAGES NONE)
+
+      # Fetch Sphinx CMake modules
+      include(FetchContent)
+      FetchContent_Declare(
+      sphinx_cmake_modules
+      GIT_REPOSITORY https://github.com/jdillard/sphinx-cmake-modules.git
+      GIT_TAG        v0.1.0
+      )
+      FetchContent_MakeAvailable(sphinx_cmake_modules)
+      list(APPEND CMAKE_MODULE_PATH "${sphinx_cmake_modules_SOURCE_DIR}")
+
+      # Add documentation
+      add_subdirectory(docs)
+
+   This repo's version of :ghfile:`CMakeLists.txt`.
+
+.. dropdown:: CMakeLists.txt
+   :chevron: down-up
+
+   A CMake config file that includes the `SphinxUtils <https://github.com/jdillard/sphinx-cmake-modules/blob/v0.1.0/SphinxUtils.cmake>`_ module from FetchContent and defines the documentation-specific build targets.
+
+   .. code-block:: cmake
+      :linenos:
+      :emphasize-lines: 6-7
+
+      include(SphinxUtils)
+
+      setup_sphinx_environment()
+
+      add_sphinx_builder(html)
+      add_sphinx_builder(markdown)
+      add_sphinx_builder(rst)
+
+   This repo's version of :ghfile:`docs/CMakeLists.txt`.
+
+.. dropdown:: CMakePresets.json
+   :chevron: down-up
 
    Defines presets for configuring and building documentation:
 
    - **Configure Presets:** Sets up the build directory.
-   - **Build Presets:** Defines Build formats individually and all in parallel.
+   - **Build Presets:** Defines build formats individually and all in parallel.
    - **Workflow Presets:** Runs the configure preset followed by the parallel build preset.
+
+   .. code-block:: json
+      :linenos:
+      :emphasize-lines: 18-23, 24-29, 34
+
+      {
+      "version": 6,
+      "configurePresets": [
+         {
+            "name": "documentation",
+            "displayName": "Documentation Build",
+            "description": "Configure project with documentation environment setup",
+            "binaryDir": "${sourceDir}/build"
+         }
+      ],
+      "buildPresets": [
+         {
+            "name": "html",
+            "displayName": "Build HTML Documentation",
+            "configurePreset": "documentation",
+            "targets": ["html"]
+         },
+         {
+            "name": "markdown",
+            "displayName": "Build Markdown Documentation",
+            "configurePreset": "documentation",
+            "targets": ["markdown"]
+         },
+         {
+            "name": "rst",
+            "displayName": "Build reStructuredText Documentation",
+            "configurePreset": "documentation",
+            "targets": ["rst"]
+         },
+         {
+            "name": "docs-parallel",
+            "displayName": "Build all output formats in parallel",
+            "configurePreset": "documentation",
+            "targets": ["html", "markdown", "rst"]
+         }
+      ],
+      "workflowPresets": [
+         {
+            "name": "documentation-workflow",
+            "displayName": "Documentation Build Workflow",
+            "steps": [
+            {
+               "type": "configure",
+               "name": "documentation"
+            },
+            {
+               "type": "build",
+               "name": "docs-parallel"
+            }
+            ]
+         }
+      ]
+      }
+
+   This repo's version of :ghfile:`CMakePresets.json`.
 
 Usage
 ~~~~~
