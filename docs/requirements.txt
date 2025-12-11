@@ -2,7 +2,6 @@ furo
 esbonio
 sphinx-contributors
 sphinx
-sphinx-autobuild
 sphinx-design
 sphinx-llms-txt
 sphinx-inline-tabs
