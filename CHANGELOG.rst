@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.1
+-----
+
+- Don't process includes within code blocks
+
 0.7.0
 -----
 
