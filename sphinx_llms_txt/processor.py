@@ -298,8 +298,7 @@ class DocumentProcessor:
 
         # Match code block as well as `code` and `sourcecode` aliases
         code_block_pattern = re.compile(
-            r'^(\s*)\.\.\s+(code-block|code|sourcecode)::\s*\S*\s*$',
-            re.MULTILINE
+            r"^(\s*)\.\.\s+(code-block|code|sourcecode)::\s*\S*\s*$", re.MULTILINE
         )
 
         for match in code_block_pattern.finditer(content):
@@ -313,11 +312,11 @@ class DocumentProcessor:
             pos = block_start
 
             # Skip any blank lines immediately after the directive
-            while pos < len(content) and content[pos] in '\n':
+            while pos < len(content) and content[pos] in "\n":
                 pos += 1
 
             # Find where the code block ends
-            lines = content[pos:].split('\n')
+            lines = content[pos:].split("\n")
             block_end = pos
             for line in lines:
                 if line.strip():  # Non-empty line
