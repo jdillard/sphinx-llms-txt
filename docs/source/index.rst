@@ -26,6 +26,11 @@ Highlights
    Filter content, include source code files, or integrate with alternative output formats like Markdown for even better LLM compatibility.
    See :doc:`getting-started` for output format options and :doc:`configuration-values` for all settings.
 
+.. seealso::
+
+   For better default output without configuration, see `sphinx-llm <https://github.com/NVIDIA/sphinx-llm>`_ from NVIDIA.
+   sphinx-llms-txt is best when customized with alternative output formats, content filtering, or source code inclusion.
+
 .. toctree::
    :maxdepth: 2
 
