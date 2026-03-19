@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.2
+-----
+
+- Fix encoding of Unicode characters (smart quotes, em dashes, etc.) in llms.txt output
+  `#65 <https://github.com/jdillard/sphinx-llms-txt/issues/65>`_
+
 0.7.1
 -----
 

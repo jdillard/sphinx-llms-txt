@@ -11,6 +11,41 @@ from sphinx.util import logging
 logger = logging.getLogger(__name__)
 
 
+def _fix_mojibake(text: str) -> str:
+    """Fix common UTF-8/Windows-1252 mojibake in text.
+
+    Mojibake (文字化け, "character transformation") is a Japanese term for garbled text
+    caused by decoding bytes with the wrong character encoding.
+
+    This handles the case where UTF-8 bytes were incorrectly decoded as Windows-1252
+    (or Latin-1), resulting in corrupted characters like:
+    - ' (U+2019) becoming â€™
+    - " (U+201C) becoming â€œ
+    - " (U+201D) becoming â€
+    - — (U+2014) becoming â€"
+    - – (U+2013) becoming â€"
+    - … (U+2026) becoming â€¦
+
+    Args:
+        text: The potentially corrupted text string
+
+    Returns:
+        The repaired text string, or the original if no repair was needed/possible
+    """
+    if not text:
+        return text
+
+    try:
+        # Try to encode the text as Windows-1252 (which would succeed if it contains
+        # the mojibake characters) and then decode as UTF-8 (to get the original)
+        return text.encode("windows-1252").decode("utf-8")
+    except (UnicodeDecodeError, UnicodeEncodeError):
+        # If encoding/decoding fails, the text is either:
+        # - Already correct UTF-8
+        # - Corrupted in a different way we can't fix
+        return text
+
+
 class FileWriter:
     """Handles writing processed content to output files."""
 
@@ -119,6 +154,8 @@ class FileWriter:
                     and hasattr(self.app.config, "project")
                 ):
                     project_name = self.app.config.project
+                # Fix any UTF-8/Windows-1252 mojibake in the project name
+                project_name = _fix_mojibake(project_name)
                 f.write(f"# {project_name}\n\n")
 
                 # Add description if available
@@ -127,6 +164,8 @@ class FileWriter:
                     # Trim leading and trailing whitespace
                     description = description.strip()
                     if description:
+                        # Fix any UTF-8/Windows-1252 mojibake in the description
+                        description = _fix_mojibake(description)
                         # Only add blockquote if description is not empty
                         # Replace newlines with newline + blockquote marker to maintain
                         # blockquote formatting
@@ -162,6 +201,8 @@ class FileWriter:
                         suffix = None
 
                     title = page_titles.get(docname, docname)
+                    # Fix any UTF-8/Windows-1252 mojibake in the title
+                    title = _fix_mojibake(title)
 
                     uri = uri_template.format(
                         base_url=base_url,
