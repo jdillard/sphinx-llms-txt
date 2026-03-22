@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.2
+-----
+
+- Fix double extension in llms.txt URLs when source suffix matches sourcelink suffix
+  `#63 <https://github.com/jdillard/sphinx-llms-txt/issues/63>`_
+
 0.7.1
 -----
 
