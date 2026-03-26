@@ -191,6 +191,83 @@ def test_get_page_order_excludes_non_toctree_docs_when_disabled():
     ]
 
 
+def test_get_page_order_does_not_follow_directory_heuristics():
+    """Test that only explicit toctree links are traversed."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+        # These attributes used to trigger heuristic traversal in collector.
+        titles = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        dependencies = {
+            "guide/page1": {
+                "guide/includes/snippet.rst": None,
+                "guide/page2.rst": None,
+            }
+        }
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({"llms_txt_toctree_only": True})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+    ]
+
+
+def test_get_page_order_follows_legacy_fallbacks_by_default():
+    """Test that legacy traversal still applies when toctree-only is disabled."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+        titles = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        dependencies = {
+            "guide/page1": {
+                "guide/includes/snippet": None,
+                "guide/page2": None,
+            }
+        }
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+        ("guide/includes/snippet", None),
+        ("guide/page2", None),
+    ]
+
+
 def test_get_page_order_includes_non_toctree_docs_by_default():
     """Test that non-toctree docs are included by default."""
 
