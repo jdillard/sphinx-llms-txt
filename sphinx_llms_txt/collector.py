@@ -175,7 +175,8 @@ class DocumentCollector:
         collect_from_toctree(self.master_doc)
 
         # Add any remaining documents not in the toctree (sorted)
-        if hasattr(self.env, "all_docs"):
+        toctree_only = self.config.get("llms_txt_toctree_only", False)
+        if not toctree_only and hasattr(self.env, "all_docs"):
             processed_docnames = {doc for doc, _ in page_order}
             remaining = sorted(
                 [

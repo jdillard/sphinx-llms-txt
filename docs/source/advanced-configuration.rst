@@ -144,6 +144,16 @@ You can exclude specific pages from being included in the generated files:
 This is useful for excluding auto-generated pages, indexes, or content that isn't relevant for LLM consumption.
 It can also be used to reduce the size of llms-full.txt.
 
+If you want output strictly limited to pages reachable from your toctree,
+disable non-toctree collection:
+
+.. code-block:: python
+
+   llms_txt_toctree_only = True
+
+This prevents include-only or otherwise unlinked documents from being added as
+standalone entries.
+
 .. _page_level_ignore:
 
 Page-Level Ignore Metadata

@@ -103,6 +103,16 @@ Project Configuration Values
 
    .. versionadded:: 0.2.1
 
+.. confval:: llms_txt_toctree_only
+
+   - **Type**: boolean
+   - **Default**: ``False``
+   - **Description**: Restrict output to pages reachable from the root toctree.
+     When enabled, include-only or otherwise unlinked documents are not added
+     as standalone entries.
+
+   .. versionadded:: 0.8.0
+
 .. confval:: llms_txt_code_files
 
    - **Type**: list of strings

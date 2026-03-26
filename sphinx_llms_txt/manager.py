@@ -378,8 +378,9 @@ class LLMSFullManager:
 
         # Add any remaining files (in alphabetical order) that aren't in the page order
         # Only skip this if we aborted early due to size limits for skip/note actions
+        toctree_only = self.config.get("llms_txt_toctree_only", False)
         size_limit_exceeded = max_lines is not None and total_line_count > max_lines
-        if not (size_limit_exceeded and should_abort_early):
+        if not toctree_only and not (size_limit_exceeded and should_abort_early):
             # Get all source files in the _sources directory using configured suffixes
             source_suffixes = self._get_source_suffixes()
             all_source_files = []
