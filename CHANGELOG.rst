@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.7.2
+-----
+
+- Add :confval:`llms_txt_allowed_builders` to control which builders trigger the LLMS file generation.
+
 0.7.1
 -----
 

@@ -121,3 +121,12 @@ Project Configuration Values
      directory to the git root and strips that prefix from file paths.
 
    .. versionadded:: 0.4.0
+
+.. confval:: llms_txt_code_base_path
+
+   - **Type**: list of strings
+   - **Default**: ``["html", "htmldir"]`` (auto-detect from git root)
+   - **Description**: List of builders that should trigger LLMS file generation.
+
+   .. versionadded:: 0.7.2
+
