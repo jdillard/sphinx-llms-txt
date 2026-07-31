@@ -306,7 +306,7 @@ You can specify to generate the LLMS files with builders other than the default 
 
 .. code-block:: python
 
-   llms_txt_code_base_path = [ "html", "dirname", "markdown" ]
+   llms_txt_allowed_builders = [ "html", "dirhtml", "markdown" ]
 
 .. _cmake_workflow:
 
