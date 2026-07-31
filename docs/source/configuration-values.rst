@@ -122,7 +122,7 @@ Project Configuration Values
 
    .. versionadded:: 0.4.0
 
-.. confval:: llms_txt_code_base_path
+.. confval:: llms_txt_allowed_builders
 
    - **Type**: list of strings
    - **Default**: ``["html", "htmldir"]`` (auto-detect from git root)
