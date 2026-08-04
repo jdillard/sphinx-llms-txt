@@ -114,6 +114,7 @@ class DocumentCollector:
         if not self.env or not self.master_doc:
             return []
 
+        toctree_only = self.config.get("llms_txt_toctree_only", False)
         page_order = []
         visited = set()
 
@@ -134,14 +135,13 @@ class DocumentCollector:
             # Check for toctree entries in this document
             try:
                 # Look for toctree_includes which contains the direct children
-                if (
-                    hasattr(self.env, "toctree_includes")
-                    and docname in self.env.toctree_includes
-                ):
-                    for child_docname in self.env.toctree_includes[docname]:
+                children = []
+                if hasattr(self.env, "toctree_includes"):
+                    children = self.env.toctree_includes.get(docname, [])
+                if children:
+                    for child_docname in children:
                         collect_from_toctree(child_docname)
-                # Try to use dependencies to find related documents
-                elif (
+                elif not toctree_only and (
                     hasattr(self.env, "dependencies")
                     and docname in self.env.dependencies
                 ):
@@ -154,7 +154,11 @@ class DocumentCollector:
                         ):
                             collect_from_toctree(child_docname)
                 # Fallback to titles or other available references
-                elif hasattr(self.env, "titles") and hasattr(self.env, "all_docs"):
+                elif (
+                    not toctree_only
+                    and hasattr(self.env, "titles")
+                    and hasattr(self.env, "all_docs")
+                ):
                     # Get all document names
                     all_docnames = list(self.env.all_docs.keys())
 
@@ -175,7 +179,7 @@ class DocumentCollector:
         collect_from_toctree(self.master_doc)
 
         # Add any remaining documents not in the toctree (sorted)
-        if hasattr(self.env, "all_docs"):
+        if not toctree_only and hasattr(self.env, "all_docs"):
             processed_docnames = {doc for doc, _ in page_order}
             remaining = sorted(
                 [

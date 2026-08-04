@@ -88,6 +88,7 @@ def build_finished(app: Sphinx, exception):
             "llms_txt_uri_template": app.config.llms_txt_uri_template,
             "llms_txt_title": app.config.llms_txt_title,
             "llms_txt_summary": summary,
+            "llms_txt_toctree_only": app.config.llms_txt_toctree_only,
             "llms_txt_full_file": app.config.llms_txt_full_file,
             "llms_txt_full_filename": app.config.llms_txt_full_filename,
             "llms_txt_full_max_size": app.config.llms_txt_full_max_size,
@@ -124,6 +125,7 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_directives", [], "env")
     app.add_config_value("llms_txt_title", None, "env")
     app.add_config_value("llms_txt_summary", None, "env")
+    app.add_config_value("llms_txt_toctree_only", False, "env")
     app.add_config_value("llms_txt_exclude", [], "env")
     app.add_config_value("llms_txt_code_files", [], "env")
     app.add_config_value("llms_txt_code_base_path", None, "env")

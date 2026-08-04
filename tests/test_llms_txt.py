@@ -167,6 +167,132 @@ def test_empty_page_order():
     assert collector.get_page_order() == []
 
 
+def test_get_page_order_excludes_non_toctree_docs_when_disabled():
+    """Test that non-toctree docs are skipped when the toggle is disabled."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "includes/snippet": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({"llms_txt_toctree_only": True})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+    ]
+
+
+def test_get_page_order_does_not_follow_directory_heuristics():
+    """Test that only explicit toctree links are traversed."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+        # These attributes used to trigger heuristic traversal in collector.
+        titles = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        dependencies = {
+            "guide/page1": {
+                "guide/includes/snippet.rst": None,
+                "guide/page2.rst": None,
+            }
+        }
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({"llms_txt_toctree_only": True})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+    ]
+
+
+def test_get_page_order_follows_legacy_fallbacks_by_default():
+    """Test that legacy traversal still applies when toctree-only is disabled."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+        titles = {
+            "index": None,
+            "guide/page1": None,
+            "guide/includes/snippet": None,
+            "guide/page2": None,
+        }
+        dependencies = {
+            "guide/page1": {
+                "guide/includes/snippet": None,
+                "guide/page2": None,
+            }
+        }
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+        ("guide/includes/snippet", None),
+        ("guide/page2", None),
+    ]
+
+
+def test_get_page_order_includes_non_toctree_docs_by_default():
+    """Test that non-toctree docs are included by default."""
+
+    class MockEnv:
+        all_docs = {
+            "index": None,
+            "guide/page1": None,
+            "includes/snippet": None,
+        }
+        toctree_includes = {"index": ["guide/page1"], "guide/page1": []}
+
+    collector = DocumentCollector()
+    collector.set_env(MockEnv())
+    collector.set_master_doc("index")
+    collector.set_config({})
+
+    page_order = collector.get_page_order()
+
+    assert page_order == [
+        ("index", None),
+        ("guide/page1", None),
+        ("includes/snippet", None),
+    ]
+
+
 def test_process_includes(tmp_path):
     """Test that include directives are processed correctly."""
     # Create a processor
@@ -790,6 +916,64 @@ def test_source_suffix_detection_priority():
         assert rst_pos < md_pos, "RST content should appear before MD content"
 
 
+def test_manager_skips_remaining_source_files_when_disabled():
+    """Test that fallback source-file inclusion is disabled by config toggle."""
+    import os
+    import tempfile
+
+    from sphinx_llms_txt.manager import LLMSFullManager
+
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = ".txt"
+            source_suffix = [".rst"]
+
+        config = Config()
+
+    manager = LLMSFullManager()
+    manager.set_app(MockApp())
+    manager.set_config(
+        {
+            "llms_txt_full_filename": "test.txt",
+            "llms_txt_exclude": [],
+            "llms_txt_directives": [],
+            "llms_txt_toctree_only": True,
+            "llms_txt_file": False,
+        }
+    )
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        outdir = f"{tmpdir}/build"
+        srcdir = f"{tmpdir}/source"
+        sources_dir = f"{outdir}/_sources"
+
+        os.makedirs(f"{sources_dir}/includes", exist_ok=True)
+        os.makedirs(srcdir, exist_ok=True)
+
+        with open(f"{sources_dir}/index.rst.txt", "w") as f:
+            f.write("Index content")
+        with open(f"{sources_dir}/includes/ensure.rst.txt", "w") as f:
+            f.write("Include-only content")
+
+        class MockEnv:
+            all_docs = {"index": None}
+            titles = {"index": type("TitleNode", (), {"astext": lambda: "Index"})()}
+            toctree_includes = {"index": []}
+
+        manager.set_env(MockEnv())
+        manager.set_master_doc("index")
+        manager.combine_sources(outdir, srcdir)
+
+        output_file = f"{outdir}/test.txt"
+        assert os.path.exists(output_file)
+
+        with open(output_file, "r") as f:
+            content = f.read()
+
+        assert "Index content" in content
+        assert "Include-only content" not in content
+
+
 def test_summary_default_uses_first_paragraph():
     """
     Test that summary defaults to first paragraph of root document when not configured.
@@ -825,6 +1009,7 @@ def test_summary_default_uses_first_paragraph():
             llms_txt_full_filename = "llms-full.txt"
             llms_txt_full_max_size = None
             llms_txt_full_size_policy = "warn_skip"
+            llms_txt_toctree_only = False
             llms_txt_directives = []
             llms_txt_exclude = []
             llms_txt_code_files = []
