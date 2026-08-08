@@ -132,6 +132,48 @@ def test_uri_template_custom(tmp_path):
     assert "- [Home Page](https://example.com/raw/index.rst)" in content
 
 
+def test_uri_template_no_double_extension_when_suffix_matches_sourcelink(tmp_path):
+    """Test that .txt suffix + .txt sourcelink_suffix doesn't produce .txt.txt URLs."""
+    build_dir = tmp_path / "build"
+    build_dir.mkdir()
+
+    sources_dir = build_dir / "_sources"
+    sources_dir.mkdir()
+
+    class MockApp:
+        class Config:
+            html_sourcelink_suffix = ".txt"
+
+        config = Config()
+
+    config = {
+        "llms_txt_file": True,
+        "llms_txt_filename": "llms.txt",
+        "html_baseurl": "https://example.com",
+    }
+    writer = FileWriter(config, str(build_dir), MockApp())
+
+    page_titles = {
+        "index": "Home Page",
+        "contents": "Table of Contents",
+    }
+
+    # .txt source files — suffix matches sourcelink_suffix
+    page_order = [("index", ".txt"), ("contents", ".txt")]
+
+    writer.write_verbose_info_to_file(page_order, page_titles, 0, sources_dir)
+
+    verbose_file = build_dir / "llms.txt"
+    with open(verbose_file, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Should NOT have double .txt.txt extension
+    assert ".txt.txt" not in content
+    # Should have single .txt extension
+    assert "- [Home Page](https://example.com/_sources/index.txt)" in content
+    assert "- [Table of Contents](https://example.com/_sources/contents.txt)" in content
+
+
 def test_uri_template_invalid_fallback(tmp_path):
     """
     Test that invalid template falls back to default sources template when

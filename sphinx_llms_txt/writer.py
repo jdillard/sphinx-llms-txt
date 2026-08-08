@@ -163,11 +163,17 @@ class FileWriter:
 
                     title = page_titles.get(docname, docname)
 
+                    # Avoid duplicate extensions when suffix matches
+                    # sourcelink_suffix (e.g., both are ".txt")
+                    effective_sourcelink_suffix = sourcelink_suffix
+                    if suffix and suffix == sourcelink_suffix:
+                        effective_sourcelink_suffix = ""
+
                     uri = uri_template.format(
                         base_url=base_url,
                         docname=docname,
                         suffix=suffix or "",
-                        sourcelink_suffix=sourcelink_suffix,
+                        sourcelink_suffix=effective_sourcelink_suffix,
                     )
 
                     f.write(f"- [{title}]({uri})\n")
