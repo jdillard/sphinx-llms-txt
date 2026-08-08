@@ -297,6 +297,17 @@ Your URI template can use the following variables:
    See :ref:`cmake_workflow` for an example of building both HTML and Markdown and/or reStructuredText in parallel.
    Note that ``_sources`` is still needed for ``llms-full.txt`` at this time.
 
+.. _custom_builders:
+
+Custom builders
+^^^^^^^^^^^^^^^
+
+You can specify to generate the LLMS files with builders other than the default `html` and `dirhtml` with the following variable:
+
+.. code-block:: python
+
+   llms_txt_allowed_builders = [ "html", "dirhtml", "markdown" ]
+
 .. _cmake_workflow:
 
 CMake Workflow

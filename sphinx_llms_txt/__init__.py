@@ -127,11 +127,12 @@ def setup(app: Sphinx) -> Dict[str, Any]:
     app.add_config_value("llms_txt_exclude", [], "env")
     app.add_config_value("llms_txt_code_files", [], "env")
     app.add_config_value("llms_txt_code_base_path", None, "env")
+    app.add_config_value("llms_txt_allowed_builders", ["html", "dirhtml"], "env")
 
     def builder_inited(app):
         """Used to limit what builders are allowed to run the extension."""
 
-        allowed_builders = ["html", "dirhtml"]
+        allowed_builders = app.config.llms_txt_allowed_builders
         if hasattr(app, "builder") and app.builder.name in allowed_builders:
             # Reset manager and root paragraph for each build
             global _manager, _root_first_paragraph
