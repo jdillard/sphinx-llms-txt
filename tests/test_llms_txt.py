@@ -1182,3 +1182,48 @@ def test_llms_txt_no_warning_when_full_file_disabled(tmp_path, caplog):
     # Verify llms.txt was still created
     llms_txt = outdir / "llms.txt"
     assert llms_txt.exists()
+
+
+def test_fix_mojibake():
+    """
+    Test that the _fix_mojibake function correctly repairs UTF-8/Windows-1252 mojibake.
+    """
+    from sphinx_llms_txt.writer import _fix_mojibake
+
+    # Test case from issue #65: smart apostrophe corrupted
+    # U+2019 (') encoded as UTF-8 (E2 80 99) then decoded as Windows-1252 gives â€™
+    # In Windows-1252: E2->â(U+00E2), 80->€(U+20AC), 99->™(U+2122)
+    corrupted = "What\u00e2\u20ac\u2122s New"  # â€™
+    expected = "What\u2019s New"  # ' = U+2019
+    assert _fix_mojibake(corrupted) == expected
+
+    # Test left double quote: U+201C (") -> â€œ
+    # U+201C encoded as UTF-8: E2 80 9C
+    # In Windows-1252: E2->â(U+00E2), 80->€(U+20AC), 9C->œ(U+0153)
+    corrupted_ldq = "He said \u00e2\u20ac\u0153Hello"
+    expected_ldq = "He said \u201cHello"
+    assert _fix_mojibake(corrupted_ldq) == expected_ldq
+
+    # Test em dash: U+2014 (—) -> â€"
+    # U+2014 encoded as UTF-8: E2 80 94
+    # In Windows-1252: E2->â(U+00E2), 80->€(U+20AC), 94->"(U+201D)
+    corrupted_emdash = "one\u00e2\u20ac\u201dtwo"
+    expected_emdash = "one\u2014two"
+    assert _fix_mojibake(corrupted_emdash) == expected_emdash
+
+    # Test that already correct text is not modified
+    # Using Unicode escape for smart apostrophe
+    correct = "What\u2019s New In Our Latest Release!"
+    assert _fix_mojibake(correct) == correct
+
+    # Test empty string
+    assert _fix_mojibake("") == ""
+
+    # Test plain ASCII text passes through unchanged
+    plain = "Hello World"
+    assert _fix_mojibake(plain) == plain
+
+    # Test mixed mojibake and normal text
+    mixed = "Here\u00e2\u20ac\u2122s a test"
+    expected_mixed = "Here\u2019s a test"
+    assert _fix_mojibake(mixed) == expected_mixed
