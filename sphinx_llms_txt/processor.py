@@ -376,6 +376,10 @@ class DocumentProcessor:
                 1
             )  # The ".. include:: " part with leading whitespace
 
+            if re.match("<.+>", include_path):
+                # This includes a standard docutils file, don't process it
+                return match.group(0)
+
             # Get all possible paths to try
             possible_paths = self._resolve_include_paths(include_path, source_path)
 
