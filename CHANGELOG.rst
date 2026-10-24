@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Unreleased
+----------
+
+- Fixed warnings when processing standard docutils include files in include directives.
+  `#75 <https://github.com/jdillard/sphinx-llms-txt/pull/75>`_
+
 0.7.1
 -----
 

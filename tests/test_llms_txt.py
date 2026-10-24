@@ -198,6 +198,17 @@ def test_process_includes(tmp_path):
     assert processed_content == expected_content
 
 
+def test_process_standard_docutils_include_is_preserved(tmp_path):
+    """Test that standard docutils includes are not treated as local files."""
+    processor = DocumentProcessor({"llms_txt_directives": []})
+    source_content = ".. include:: <isonum.txt>\n"
+    source_file = tmp_path / "source.txt"
+
+    processed_content = processor._process_includes(source_content, source_file)
+
+    assert processed_content == source_content
+
+
 def test_process_includes_in_code_block(tmp_path):
     """Test that an `include` within a `code-block` is not processed."""
     # Create a processor
